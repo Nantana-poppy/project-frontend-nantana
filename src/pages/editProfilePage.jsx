@@ -93,33 +93,32 @@ export default function EditProfilePage() {
   };
 
   const handleImageChange = async (e) => {
-  const file = e.target.files?.[0];
+    const file = e.target.files?.[0];
 
-  if (!file) return;
+    if (!file) return;
 
-  try {
-    setSaving(true);
+    try {
+      setSaving(true);
 
-    // Upload รูปขึ้น Cloudinary
-    const imageUrl = await uploadCloud(file);
+      // Upload รูปขึ้น Cloudinary
+      const imageUrl = await uploadCloud(file);
 
-    console.log("Cloudinary URL:", imageUrl);
+      console.log("Cloudinary URL:", imageUrl);
 
-    // เก็บ URL Cloudinary ไว้ใน formData
-    setFormData((prev) => ({
-      ...prev,
-      profileImage: imageUrl,
-    }));
+      // เก็บ URL Cloudinary ไว้ใน formData
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: imageUrl,
+      }));
 
-    toast.success("Photo uploaded successfully");
-  } catch (error) {
-    console.error("Upload image error:", error);
-    toast.error("Failed to upload photo");
-  } finally {
-    setSaving(false);
-  }
-};
-
+      toast.success("Photo uploaded successfully");
+    } catch (error) {
+      console.error("Upload image error:", error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Cancel
   const handleCancel = () => {
@@ -209,9 +208,7 @@ export default function EditProfilePage() {
 
             {/* Personal Information */}
             <section className="mt-6 rounded-[26px] bg-white px-5 py-5 shadow-[0_8px_30px_rgba(25,40,32,0.04)]">
-              <h2 className="text-3xl font-semibold">
-                Personal Information
-              </h2>
+              <h2 className="text-3xl font-semibold">Personal Information</h2>
 
               <div className="mt-2 h-px bg-[#e5e8e5]" />
 
@@ -226,7 +223,7 @@ export default function EditProfilePage() {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="h-10 w-full rounded-full border border-[#aeb5b1] bg-[#fbfcfb] px-3 text-mdoutline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
+                    className="h-10 w-full rounded-full border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
                   />
                 </div>
 
@@ -240,7 +237,7 @@ export default function EditProfilePage() {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="h-10 w-full rounded-full border border-[#aeb5b1] bg-[#fbfcfb] px-3 text-mdoutline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
+                    className="h-10 w-full rounded-full border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
                   />
                 </div>
 
@@ -251,7 +248,7 @@ export default function EditProfilePage() {
                   </label>
 
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-[#777d79]">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#777d79]">
                       @
                     </span>
 
@@ -259,7 +256,7 @@ export default function EditProfilePage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                    className="h-10 w-full rounded-full border border-[#aeb5b1] bg-[#fbfcfb] px-3 text-mdoutline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
+                      className="h-10 w-full rounded-full border border-gray-200 bg-white px-6 text-sm outline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
                     />
                   </div>
 
@@ -270,9 +267,7 @@ export default function EditProfilePage() {
 
                 {/* Bio */}
                 <div className="sm:col-span-2">
-                  <label className="mb-1 block text-md font-medium">
-                    Bio
-                  </label>
+                  <label className="mb-1 block text-md font-medium">Bio</label>
 
                   <textarea
                     name="bio"
@@ -280,7 +275,7 @@ export default function EditProfilePage() {
                     onChange={handleChange}
                     maxLength={500}
                     rows={4}
-                    className="w-full resize-none rounded-[17px] border border-[#aeb5b1] bg-[#fbfcfb] px-3 py-2 text-md leading-[1.45] outline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
+                    className="w-full resize-none rounded-[17px] border border-gray-200 bg-white px-3 py-2 text-md leading-[1.45] outline-none transition focus:border-[#164d3a] focus:ring-1 focus:ring-[#164d3a]/20"
                   />
 
                   <div className="flex justify-end">
