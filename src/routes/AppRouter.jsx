@@ -2,7 +2,6 @@ import { createBrowserRouter } from "react-router";
 
 import { RegisterContent } from "@/pages/registerPage";
 import { LogInContent } from "@/pages/loginPage";
-import MainPage2 from "@/pages/main/mainPage";
 import ProfilePage from "@/pages/profilePage";
 import ExplorePage from "@/pages/explorePage";
 import CommunityPage from "@/pages/communityPage";
@@ -12,11 +11,12 @@ import NotificationPage from "@/pages/NotificationPage";
 import EditProfilePage from "@/pages/editProfilePage";
 import SaveTripPage from "@/pages/saveTripPage";
 import CreatePostPage from "@/pages/create-post/CreatePostPage";
+import MainPage from "@/pages/main/mainPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: MainPage2,
+    Component: MainPage,
   },
 
   {

@@ -8,7 +8,7 @@ import { mainApi } from "@/api/mainApi";
 import moment from "moment/moment";
 import { useNavigate } from "react-router";
 
-export default function MainPage2() {
+export default function MainPage() {
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");

@@ -1,15 +1,18 @@
 import { MenuBar } from "@/components/MenuBar";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { mainApi } from "@/api/mainApi";
 import useUserStore from "@/stores/userStore";
 import { toast } from "react-toastify";
+import uploadCloud from "@/utils/uploadCloud";
 
 export default function EditProfilePage() {
   const navigate = useNavigate();
 
   const user = useUserStore((state) => state.user);
   const updateUser = useUserStore((state) => state.updateUser);
+
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -89,6 +92,34 @@ export default function EditProfilePage() {
     }
   };
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setSaving(true);
+
+      // Upload รูปขึ้น Cloudinary
+      const imageUrl = await uploadCloud(file);
+
+      console.log("Cloudinary URL:", imageUrl);
+
+      // เก็บ URL Cloudinary ไว้ใน formData
+      setFormData((prev) => ({
+        ...prev,
+        profileImage: imageUrl,
+      }));
+
+      toast.success("Photo uploaded successfully");
+    } catch (error) {
+      console.error("Upload image error:", error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Cancel
   const handleCancel = () => {
     navigate("/profile");
@@ -146,10 +177,19 @@ export default function EditProfilePage() {
                   <div className="mt-2 flex gap-2">
                     <button
                       type="button"
+                      onClick={() => fileInputRef.current?.click()}
                       className="rounded-full bg-[#0F4C81] px-6 py-2 text-sm font-medium text-white hover:bg-[#0b3d69]"
                     >
                       Change Photo
                     </button>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
 
                     <button
                       type="button"
