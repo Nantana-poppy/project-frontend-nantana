@@ -112,11 +112,11 @@ const CreateTripPage = () => {
       <MenuBar />
       <form onSubmit={handleCreateTrip}>
         <div>
-          <div className="min-h-screen px-4 py-8 sm:px-6 lg:px-10">
-            <div className="mx-auto max-w-screen">
+          <div className="min-h-screen px-8 py-8 sm:px-6 lg:px-10">
+            <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
               {/* Header */}
               <div className="mb-7">
-                <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-normal text-black sm:text-5xl">
                   Create a Trip
                 </h1>
 

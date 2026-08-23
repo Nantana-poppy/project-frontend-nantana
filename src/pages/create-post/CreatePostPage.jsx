@@ -103,7 +103,7 @@ export default function CreatePostPage() {
     <>
       <MenuBar />
 
-      <div className="min-h-screen bg-[#f5f5f2] px-6 py-8">
+      <div className="min-h-screen bg-[#f5f5f2] px-8 py-8">
         <div className="mx-auto max-w-4xl">
           {/* =========================
               Header

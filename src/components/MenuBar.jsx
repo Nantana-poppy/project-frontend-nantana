@@ -12,7 +12,7 @@ export function MenuBar() {
   return (
     <>
       <div className="flex justify-between items-center p-5 px-10">
-        <div className="text-5xl font-bold text-primary">Jouney</div>
+        <div className="text-5xl font-bold text-primary">Journey</div>
         <div className="flex gap-10 text-lg">
           <p className="nav-link text-lg" onClick={() => navigate("/")}>
             Home

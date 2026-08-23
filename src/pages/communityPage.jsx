@@ -33,7 +33,7 @@ export default function CommunityPage() {
     <>
 
       <MenuBar />
-      <main className="min-h-screen bg-[#f5f5f2] px-6 py-8">
+      <main className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
         <div className="mx-auto max-w-3xl">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">

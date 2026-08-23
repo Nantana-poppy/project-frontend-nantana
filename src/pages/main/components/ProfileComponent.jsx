@@ -24,7 +24,7 @@ export const ProfileComponent = () => {
           className="cursor-pointer text-5xl font-bold text-primary"
           onClick={() => navigate("/")}
         >
-          Jouney
+          Journey
         </div>
 
         {/* Navigation */}
@@ -102,7 +102,7 @@ export const ProfileComponent = () => {
         className="cursor-pointer text-5xl font-bold text-primary"
         onClick={() => navigate("/")}
       >
-        Jouney
+        Journey
       </div>
 
       {/* Auth Buttons */}

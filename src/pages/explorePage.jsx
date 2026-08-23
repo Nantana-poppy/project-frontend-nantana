@@ -206,10 +206,10 @@ export default function ExplorePage() {
   // ==========================================
 
   return (
-    <div className="min-h-screen bg-[#f8f9f7]">
+    <div className="min-h-screen">
       <MenuBar />
 
-      <main className="px-8 py-8">
+      <main className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
         <div className="mx-auto max-w-7xl">
           {/* ================================= */}
           {/* HEADER */}
@@ -448,6 +448,7 @@ export default function ExplorePage() {
                     moment(trip.endDate).format("L")
                   }
                   price={Number(trip.budget).toLocaleString("th-TH")}
+                  hostAvatar={trip.owner.profileImage}
                   hostName={trip.owner.firstName + " " + trip.owner.lastName}
                   joined={trip.maxMember}
                   image={trip.image}

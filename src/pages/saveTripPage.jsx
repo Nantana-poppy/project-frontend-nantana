@@ -64,6 +64,7 @@ export default function SaveTripPage() {
                     moment(trip.endDate).format("L")
                   }
                   price={Number(trip.budget).toLocaleString("th-TH")}
+                  hostAvatar={trip.owner.profileImage}
                   hostName={trip.owner.firstName + " " + trip.owner.lastName}
                   joined={trip.maxMember}
                   image={trip.image}

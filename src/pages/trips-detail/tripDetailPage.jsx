@@ -224,7 +224,7 @@ const TripDetailPage = () => {
       <MenuBar />
 
       <div className="min-h-screen bg-[#f5f5f2] px-8 py-8 text-[#17211c]">
-        <div className="mx-auto max-w-full">
+        <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
           {/* Header */}
           <h1 className="mb-3 text-5xl font-semibold tracking-[1px]">
             Trip Detail

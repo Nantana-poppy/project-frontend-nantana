@@ -78,10 +78,10 @@ export default function ProfilePage() {
     <>
       <MenuBar />
 
-      <div className="min-h-screen bg-[#FDFBF7] px-5 py-8 md:px-8 lg:px-12">
-        <div className="mx-auto max-w-full">
+      <div className="min-h-screen px-8 py-8 md:px-8 lg:px-12">
+        <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
           {/* Profile */}
-          <div className="rounded-[38px] bg-white px-7 py-8 shadow-lg md:px-12 md:py-10">
+          <div className="rounded-[38px] bg-white px-8 py-8 shadow-lg md:px-12 md:py-10">
             <div className="flex flex-col gap-20 md:flex-row md:items-center">
               {/* Profile Image */}
               <div className="flex shrink-0 flex-col items-center">
@@ -91,7 +91,7 @@ export default function ProfilePage() {
                     "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
                   }
                   alt="profile"
-                  className="h-30 w-30 rounded-full object-cover"
+                  className="h-50 w-50 rounded-full object-cover"
                 />
 
                 <div className="mt-5 flex gap-2">
@@ -106,13 +106,13 @@ export default function ProfilePage() {
 
               {/* User Information */}
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 md:text-4xl">
+                <h1 className="text-3xl font-bold text-gray-900 md:text-5xl">
                   {user.firstName} {user.lastName}
                 </h1>
 
-                <p className="mt-1 text-sm text-gray-500">@{user.username}</p>
+                <p className="mt-5 md:text-lg text-sm text-gray-500">@{user.username}</p>
 
-                <p className="mt-5 max-w-3xl text-sm leading-6 text-gray-700">
+                <p className="mt-5 max-w-3xl md:text-lg text-sm leading-6 text-gray-700">
                   {user.bio || "No bio yet."}
                 </p>
 
