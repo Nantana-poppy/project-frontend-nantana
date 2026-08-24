@@ -33,14 +33,14 @@ export default function MainPage() {
 
   return (
     <>
+      {/* Navbar */}
       <div>
         <ProfileComponent />
       </div>
       <div className="px-8 py-8">
-        {/* Navbar */}
         {/* Content */}
         <div
-          className="rounded-4xl m-8 h-full p-15 bg-cover bg-center shadow-lg shadow-neutral-700/50 px-8"
+          className="rounded-4xl mx-auto max-w-7xl h-full mb-8 p-15 bg-cover bg-center shadow-lg shadow-neutral-700/50 px-8"
           style={{ backgroundImage: `url(${BgSand})` }}
         >
           <div className="flex flex-col text-5xl text-white gap-5 font-bold">

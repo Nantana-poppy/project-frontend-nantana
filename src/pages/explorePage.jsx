@@ -80,6 +80,7 @@ export default function ExplorePage() {
       result = result.filter(
         (trip) => trip.category?.name === selectedCategory,
       );
+      console.log("selectedCategory", selectedCategory);
     }
 
     // Date
@@ -87,12 +88,14 @@ export default function ExplorePage() {
       result = result.filter((trip) => {
         return new Date(trip.startDate) >= new Date(startDate);
       });
+      console.log("startDate", startDate);
     }
 
     if (endDate) {
       result = result.filter((trip) => {
         return new Date(trip.endDate) <= new Date(endDate);
       });
+      console.log("endDate", endDate);
     }
 
     // Budget
@@ -168,20 +171,13 @@ export default function ExplorePage() {
     groupSize ||
     sort !== "newest";
 
-  // ==========================================
-  // UI
-  // ==========================================
-
   return (
     <div className="min-h-screen">
       <MenuBar />
 
       <main className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
         <div className="mx-auto max-w-7xl">
-          {/* ================================= */}
           {/* HEADER */}
-          {/* ================================= */}
-
           <div className="mb-8">
             <h1 className="text-5xl font-bold text-[#171b19]">Explore Trips</h1>
 
@@ -190,10 +186,7 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          {/* ================================= */}
           {/* SEARCH */}
-          {/* ================================= */}
-
           <div className="rounded-3xl bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-[#fafafa] px-5 py-3">
               <Search size={20} className="text-gray-400" />
@@ -216,10 +209,7 @@ export default function ExplorePage() {
               )}
             </div>
 
-            {/* ================================= */}
             {/* FILTERS */}
-            {/* ================================= */}
-
             <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Category */}
 
@@ -286,26 +276,17 @@ export default function ExplorePage() {
                   className="w-full rounded-full border border-gray-200 bg-white px-4 py-3 text-sm outline-none"
                 >
                   <option value="">Any Group Size</option>
-
                   <option value="2">2+ People</option>
-
                   <option value="3">3+ People</option>
-
                   <option value="4">4+ People</option>
-
                   <option value="5">5+ People</option>
-
                   <option value="6">6+ People</option>
-
                   <option value="10">10+ People</option>
                 </select>
               </div>
             </div>
 
-            {/* ================================= */}
             {/* BUDGET */}
-            {/* ================================= */}
-
             <div className="mt-5">
               <label className="mb-2 block text-sm font-medium">Budget</label>
 
@@ -330,10 +311,7 @@ export default function ExplorePage() {
               </div>
             </div>
 
-            {/* ================================= */}
             {/* SORT + CLEAR */}
-            {/* ================================= */}
-
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal size={18} className="text-gray-400" />
@@ -364,10 +342,7 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          {/* ================================= */}
           {/* RESULT COUNT */}
-          {/* ================================= */}
-
           <div className="mb-5 mt-8 flex items-center justify-between">
             <h2 className="text-2xl font-semibold">Explore Trips</h2>
             <p className="text-sm text-gray-500">
@@ -375,10 +350,7 @@ export default function ExplorePage() {
             </p>
           </div>
 
-          {/* ================================= */}
           {/* TRIPS */}
-          {/* ================================= */}
-
           {loading ? (
             <div className="flex min-h-60 items-center justify-center">
               <p className="text-[#0F4C81]">Loading trips...</p>

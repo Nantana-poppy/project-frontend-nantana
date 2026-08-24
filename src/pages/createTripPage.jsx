@@ -80,8 +80,6 @@ const CreateTripPage = () => {
 
       console.log("Created trip:", response.data.data);
 
-      // เมื่อกด Create เสร็จกลับไปหน้า MainPage แล้วจะเห้นทริปที่สร้างเด้งขึ้นมาอันแรกเพราะ
-      // ใน dataBase เซ็ตไว้ว่า
       navigate("/");
     } catch (error) {
     } finally {
@@ -91,6 +89,7 @@ const CreateTripPage = () => {
 
   const [image, setImage] = useState("");
   const [uploading, setUploading] = useState(false);
+  
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -158,7 +157,7 @@ const CreateTripPage = () => {
                       </div>
 
                       <p className="text-xs font-medium text-gray-500">
-                        Drag and drop an image, or{" "}
+                        Drag and drop an image, or
                         <span className="text-primary">browse</span>
                       </p>
 

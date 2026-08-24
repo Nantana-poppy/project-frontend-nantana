@@ -19,14 +19,13 @@ export default function PostCard({ post }) {
       return;
     }
 
-    // ป้องกันกดซ้ำ เพราะ backend ตอนนี้ไม่มี unlike
+    // กันกดซ้ำ เพราะ backend ตอนนี้ไม่มี unlike ต้องไปทำเพิ่ม
+    // TODO: ต้องไปเพิ่ม DB สำหรับ Unlike
     if (liked) {
       return;
     }
-
     try {
       await mainApi.post(`/posts/${post.id}/like`);
-
       setLiked(true);
       setLikeCount((prev) => prev + 1);
     } catch (error) {

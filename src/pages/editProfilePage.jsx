@@ -71,19 +71,15 @@ export default function EditProfilePage() {
       return;
     }
 
+    // เอาข้อมูลใหม่เก็บใน Zustand
     try {
       setSaving(true);
-
       const response = await mainApi.patch(`/users/${user.id}`, formData);
-
-      // เอาข้อมูลใหม่เก็บใน Zustand
       updateUser(response.data.data);
-
       toast.success("Profile updated successfully");
-
-      // กลับไป Profile
       navigate("/profile", { replace: true });
     } catch (error) {
+      
       console.error(error);
 
       toast.error(error.response?.data?.error || "Failed to update profile");

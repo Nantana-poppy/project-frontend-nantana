@@ -18,9 +18,7 @@ export default function CreatePostPage() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // =========================
   // Upload Image
-  // =========================
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files);
 
@@ -43,22 +41,16 @@ export default function CreatePostPage() {
       toast.error("Failed to upload image");
     } finally {
       setUploading(false);
-
-      // reset input เพื่อให้เลือกไฟล์เดิมซ้ำได้
       e.target.value = "";
     }
   };
 
-  // =========================
   // Remove Image
-  // =========================
   const removeImage = (index) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // =========================
   // Create Post
-  // =========================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -105,9 +97,7 @@ export default function CreatePostPage() {
 
       <div className="min-h-screen bg-[#f5f5f2] px-8 py-8">
         <div className="mx-auto max-w-4xl">
-          {/* =========================
-              Header
-          ========================= */}
+          {/* Header*/}
           <div className="mb-6 flex items-center gap-4">
             <button
               type="button"
@@ -126,16 +116,12 @@ export default function CreatePostPage() {
             </div>
           </div>
 
-          {/* =========================
-              Main Form
-          ========================= */}
+          {/* Main Form */}
           <form
             onSubmit={handleSubmit}
             className="rounded-3xl bg-white p-6 shadow-sm"
           >
-            {/* =========================
-                Photos
-            ========================= */}
+            {/* Photos */}
             <section>
               <div className="mb-3 flex items-center justify-between">
                 <div>
@@ -151,9 +137,7 @@ export default function CreatePostPage() {
                 </span>
               </div>
 
-              {/* =========================
-                  Image Preview
-              ========================= */}
+              {/* Image Preview */}
               {images.length > 0 && (
                 <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
                   {images.map((image, index) => (
@@ -180,9 +164,7 @@ export default function CreatePostPage() {
                 </div>
               )}
 
-              {/* =========================
-                  Upload
-              ========================= */}
+              {/* Upload */}
               <label
                 className={`flex min-h-45 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-gray-300 bg-[#fafafa] transition ${
                   uploading
@@ -213,9 +195,7 @@ export default function CreatePostPage() {
               </label>
             </section>
 
-            {/* =========================
-                Caption
-            ========================= */}
+            {/* Caption */}
             <section className="mt-6">
               <label className="mb-2 block text-sm font-semibold">
                 Caption
@@ -237,9 +217,7 @@ export default function CreatePostPage() {
               </div>
             </section>
 
-            {/* =========================
-                Location
-            ========================= */}
+            {/* Location */}
             <section className="mt-5">
               <label className="mb-2 block text-sm font-semibold">
                 Location
@@ -261,9 +239,7 @@ export default function CreatePostPage() {
               </div>
             </section>
 
-            {/* =========================
-                Buttons
-            ========================= */}
+            {/* Buttons */}
             <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 pt-6">
               <button
                 type="button"

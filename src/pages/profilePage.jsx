@@ -20,13 +20,10 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-
         // ข้อมูล user ที่ login
         setProfile(user);
-
         // ดึง trip ที่ user คนนี้เป็น owner
         const response = await mainApi.get("/users/me/trips");
-
         setTrips(response.data.data);
       } catch (error) {
         console.error(

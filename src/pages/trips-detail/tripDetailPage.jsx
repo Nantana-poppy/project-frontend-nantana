@@ -54,9 +54,7 @@ const TripDetailPage = () => {
       ? Number(user.id) === Number(trip.owner.id)
       : false;
 
-  // =========================
   // Get Trip Detail
-  // =========================
   const fetchTripDetail = async () => {
     try {
       setLoading(true);
@@ -71,9 +69,7 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Get Trip Members
-  // =========================
   const fetchTripMembers = async () => {
     try {
       await fetchMembers(tripId);
@@ -82,10 +78,8 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Get Join Requests
   // Owner only
-  // =========================
   const fetchJoinRequests = async () => {
     if (!tripId || !isOwner) return;
 
@@ -102,9 +96,7 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Join Trip
-  // =========================
   const handleJoinTrip = async () => {
     try {
       setJoinLoading(true);
@@ -121,16 +113,12 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Accept Request
-  // =========================
   const handleAcceptRequest = async (requestId) => {
     try {
       await mainApi.patch(`/requests/${requestId}/accept`);
       alert("Join request accepted");
-      // ลบ request ที่ accept แล้วออกจาก pending list
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
-      // ดึง members ใหม่
       await fetchTripMembers();
     } catch (error) {
       console.error("Accept request error:", error.response?.data || error);
@@ -138,14 +126,11 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Reject Request
-  // =========================
   const handleRejectRequest = async (requestId) => {
     try {
       await mainApi.patch(`/requests/${requestId}/reject`);
-      alert("Join request rejected");
-      // ลบ request ที่ reject แล้ว
+      alert("Join request rejected")
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
     } catch (error) {
       console.error("Reject request error:", error.response?.data || error);
@@ -153,9 +138,7 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Save Trip
-  // =========================
   const handleSaveTrip = async () => {
     try {
       await mainApi.post(`/trips/${tripId}/save`);
@@ -166,9 +149,7 @@ const TripDetailPage = () => {
     }
   };
 
-  // =========================
   // Initial Load
-  // =========================
   useEffect(() => {
     if (!tripId) return;
 
@@ -176,19 +157,14 @@ const TripDetailPage = () => {
     fetchMembers(tripId);
   }, [tripId]);
 
-  // =========================
-  // Fetch Request หลังจากรู้ว่า
-  // คนที่ login เป็น Owner
-  // =========================
+  // Check ว่าคนนี้ใช้ Owner ไหม ถ้าใช่จะ Fetch Request หลังจากรู้ว่าคนที่ login เป็น Owner
   useEffect(() => {
     if (!tripId || !isOwner) return;
 
     fetchJoinRequests();
   }, [tripId, isOwner]);
 
-  // =========================
   // Loading
-  // =========================
   if (loading) {
     return (
       <div>
@@ -201,9 +177,7 @@ const TripDetailPage = () => {
     );
   }
 
-  // =========================
   // Trip not found
-  // =========================
   if (!trip) {
     return (
       <div>
@@ -232,7 +206,6 @@ const TripDetailPage = () => {
 
           {/* Main Card */}
           <div className="overflow-hidden rounded-3xl bg-[#f8f8f5] shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
-            {/* ================= HERO ================= */}
             <section className="relative h-90 overflow-hidden rounded-3xl">
               <img
                 src={
@@ -264,7 +237,7 @@ const TripDetailPage = () => {
               </div>
             </section>
 
-            {/* ================= CONTENT ================= */}
+            {/* CONTENT */}
             <div className="p-4 md:p-6">
               {/* Stats */}
               <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -297,7 +270,7 @@ const TripDetailPage = () => {
 
               {/* Lower section */}
               <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_330px]">
-                {/* ================= ABOUT ================= */}
+                {/* ABOUT */}
                 <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
                   <h2 className="text-xl font-semibold">About this trip</h2>
 
@@ -306,7 +279,7 @@ const TripDetailPage = () => {
                   </p>
                 </section>
 
-                {/* ================= OWNER ================= */}
+                {/* OWNER */}
                 <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
                   <p className="text-md font-medium uppercase tracking-wider text-gray-400">
                     Owner trip
@@ -340,7 +313,7 @@ const TripDetailPage = () => {
                   <TripMembers members={members} />
                 </div>
 
-                {/* ================= ACTION BUTTONS ================= */}
+                {/* ACTION BUTTONS  */}
                 <div className="mt-5 space-y-2">
                   {/* ไม่แสดง Join ให้ Owner */}
                   {!isOwner && (
@@ -365,10 +338,7 @@ const TripDetailPage = () => {
                 </div>
               </div>
 
-              {/* ================================================= */}
               {/* OWNER ONLY : JOIN REQUESTS */}
-              {/* ================================================= */}
-
               {isOwner && (
                 <section className="mt-6 rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
                   <div className="flex items-center justify-between">
