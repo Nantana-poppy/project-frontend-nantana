@@ -25,10 +25,7 @@ export default function ExplorePage() {
 
   const [loading, setLoading] = useState(true);
 
-  // ==========================================
   // GET ALL TRIPS
-  // ==========================================
-
   useEffect(() => {
     const fetchTrips = async () => {
       try {
@@ -47,10 +44,7 @@ export default function ExplorePage() {
     fetchTrips();
   }, []);
 
-  // ==========================================
   // GET CATEGORIES
-  // ==========================================
-
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -65,17 +59,11 @@ export default function ExplorePage() {
     fetchCategories();
   }, []);
 
-  // ==========================================
   // FILTER TRIPS
-  // ==========================================
-
   const filteredTrips = useMemo(() => {
     let result = [...trips];
 
-    // ------------------------------------------
     // Search
-    // ------------------------------------------
-
     if (search.trim()) {
       const keyword = search.toLowerCase().trim();
 
@@ -87,20 +75,14 @@ export default function ExplorePage() {
       });
     }
 
-    // ------------------------------------------
     // Category
-    // ------------------------------------------
-
     if (selectedCategory !== "All") {
       result = result.filter(
         (trip) => trip.category?.name === selectedCategory,
       );
     }
 
-    // ------------------------------------------
     // Date
-    // ------------------------------------------
-
     if (startDate) {
       result = result.filter((trip) => {
         return new Date(trip.startDate) >= new Date(startDate);
@@ -113,10 +95,7 @@ export default function ExplorePage() {
       });
     }
 
-    // ------------------------------------------
     // Budget
-    // ------------------------------------------
-
     if (minBudget) {
       result = result.filter(
         (trip) => Number(trip.budget) >= Number(minBudget),
@@ -129,32 +108,23 @@ export default function ExplorePage() {
       );
     }
 
-    // ------------------------------------------
     // Group Size
-    // ------------------------------------------
-
     if (groupSize) {
       result = result.filter(
         (trip) => Number(trip.maxMember) >= Number(groupSize),
       );
     }
 
-    // ==========================================
     // SORT
-    // ==========================================
-
     if (sort === "newest") {
       result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-
     if (sort === "oldest") {
       result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     }
-
     if (sort === "budget-low") {
       result.sort((a, b) => Number(a.budget) - Number(b.budget));
     }
-
     if (sort === "budget-high") {
       result.sort((a, b) => Number(b.budget) - Number(a.budget));
     }
@@ -172,10 +142,7 @@ export default function ExplorePage() {
     sort,
   ]);
 
-  // ==========================================
   // CLEAR FILTER
-  // ==========================================
-
   const clearFilters = () => {
     setSearch("");
     setSelectedCategory("All");

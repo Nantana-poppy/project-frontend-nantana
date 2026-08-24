@@ -385,7 +385,7 @@ const TripDetailPage = () => {
                         requests.filter(
                           (request) => request.status === "PENDING",
                         ).length
-                      }{" "}
+                      }
                       Pending
                     </span>
                   </div>
