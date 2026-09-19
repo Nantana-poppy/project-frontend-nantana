@@ -214,7 +214,8 @@ export default function MainPage() {
                       ? `${value.owner.firstName} ${value.owner.lastName}`
                       : "Host"
                   }
-                  joined={value.maxMember}
+                  currentMembers={value.members?.length ?? value._count?.members ?? 1}
+                  maxMembers={value.maxMember}
                   image={value.image}
                 />
               ))}

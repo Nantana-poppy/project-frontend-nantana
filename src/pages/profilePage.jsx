@@ -197,7 +197,8 @@ export default function ProfilePage() {
                 price={Number(trip.budget).toLocaleString("th-TH")}
                 hostName={`${user.firstName} ${user.lastName}`}
                 hostAvatar={user.profileImage}
-                joined={trip.maxMember}
+                currentMembers={trip.members?.length ?? trip._count?.members ?? 1}
+                maxMembers={trip.maxMember}
               />
             ))}
           </div>

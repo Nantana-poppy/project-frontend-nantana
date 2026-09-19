@@ -91,7 +91,8 @@ export default function SaveTripPage() {
                       ? `${trip.owner.firstName} ${trip.owner.lastName}`
                       : "Host"
                   }
-                  joined={trip.maxMember}
+                  currentMembers={trip.members?.length ?? trip._count?.members ?? 1}
+                  maxMembers={trip.maxMember}
                   image={trip.image}
                 />
               );

@@ -17,12 +17,19 @@ export default function TripCard({
   hostName,
   hostAvatar = "",
   hostId,
-  joined,
+  currentMembers = 1,
+  maxMembers = 4,
+  joined, // backward compatibility
 }) {
   const user = useUserStore((state) => state.user);
   const savedTripIds = useTripStore((state) => state.savedTripIds);
   const toggleSaveTrip = useTripStore((state) => state.toggleSaveTrip);
   const isSaved = savedTripIds.includes(Number(tripId));
+
+  const totalMax = Number(maxMembers || joined || 4);
+  const currentCount = Number(currentMembers ?? 1);
+  const spotsLeft = Math.max(0, totalMax - currentCount);
+  const isFull = currentCount >= totalMax;
 
   const effectiveHostAvatar =
     hostId && user?.id && Number(hostId) === Number(user.id) && user.profileImage
@@ -43,6 +50,11 @@ export default function TripCard({
     }
     if (!tripId) {
       toast.error("Trip ID not found");
+      return;
+    }
+
+    if (isFull) {
+      toast.info("This trip is already full");
       return;
     }
 
@@ -112,9 +124,20 @@ export default function TripCard({
         {/* Subtle Dark Gradient at Bottom of Image */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
 
-        {/* Category badge */}
-        <div className="absolute top-3.5 left-3.5 px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/20">
-          {category || "General"}
+        {/* Badges top left */}
+        <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5">
+          <div className="px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/20">
+            {category || "General"}
+          </div>
+          {isFull ? (
+            <div className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-600/90 text-white backdrop-blur-md shadow-xs">
+              Full
+            </div>
+          ) : (
+            <div className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#385526]/85 text-emerald-100 backdrop-blur-md border border-white/10">
+              {spotsLeft} spots left
+            </div>
+          )}
         </div>
 
         {/* Bookmark / Save button */}
@@ -162,7 +185,7 @@ export default function TripCard({
 
           <div className="my-3.5 h-px bg-gray-100" />
 
-          {/* Host row */}
+          {/* Host & Member Count Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
               <img
@@ -174,11 +197,19 @@ export default function TripCard({
                 <p className="text-xs font-semibold text-gray-900 truncate">
                   {hostName}
                 </p>
-                <div className="flex items-center gap-1 text-[11px] text-gray-500 mt-0.5">
-                  <Users size={11} className="text-gray-400" />
-                  <span>{joined} max members</span>
-                </div>
+                <p className="text-[11px] text-gray-400">Host</p>
               </div>
+            </div>
+
+            {/* Member count ratio (e.g. 2/4) */}
+            <div className="flex items-center gap-1.5 bg-[#f8faf7] px-2.5 py-1 rounded-full border border-gray-100">
+              <Users size={13} className="text-[#385526]" />
+              <span className="text-xs font-bold text-gray-800">
+                {currentCount}/{totalMax}
+              </span>
+              <span className="text-[10px] text-gray-400">
+                ({isFull ? "Full" : `${spotsLeft} left`})
+              </span>
             </div>
           </div>
         </div>
@@ -199,11 +230,17 @@ export default function TripCard({
           <button
             type="button"
             onClick={handleJoinTrip}
-            disabled={joining}
-            className="w-full py-2 px-3 rounded-xl bg-[#385526] hover:bg-[#2d451e] text-xs font-semibold text-white shadow-2xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1"
+            disabled={joining || isFull}
+            className={`w-full py-2 px-3 rounded-xl text-xs font-semibold shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              isFull
+                ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                : "bg-[#385526] hover:bg-[#2d451e] text-white disabled:opacity-50"
+            }`}
           >
             {joining ? (
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            ) : isFull ? (
+              <span>Trip Full</span>
             ) : (
               <>
                 <span>Join</span>

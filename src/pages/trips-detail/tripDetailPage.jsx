@@ -12,7 +12,7 @@ import {
   X,
   Trash2,
   ArrowLeft,
-  Share2,
+  UserCheck,
 } from "lucide-react";
 import moment from "moment";
 import { useEffect, useState } from "react";
@@ -23,7 +23,7 @@ import useTripStore from "@/stores/tripStroe";
 import useUserStore from "@/stores/userStore";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 
-function StatCard({ icon, label, value }) {
+function StatCard({ icon, label, value, subtext }) {
   return (
     <div className="flex items-center gap-3.5 rounded-2xl bg-white p-3.5 border border-gray-100 shadow-2xs">
       <div className="h-10 w-10 rounded-xl bg-[#f2f6f0] text-[#385526] flex items-center justify-center shrink-0">
@@ -32,6 +32,7 @@ function StatCard({ icon, label, value }) {
       <div>
         <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{label}</p>
         <p className="text-xs sm:text-sm font-bold text-gray-900 mt-0.5">{value}</p>
+        {subtext && <p className="text-[10px] text-gray-400 font-normal">{subtext}</p>}
       </div>
     </div>
   );
@@ -66,6 +67,15 @@ const TripDetailPage = () => {
     user?.id && trip?.owner?.id
       ? Number(user.id) === Number(trip.owner.id)
       : false;
+
+  const currentMemberCount = members.length;
+  const maxCapacity = trip?.maxMember || 4;
+  const spotsLeft = Math.max(0, maxCapacity - currentMemberCount);
+  const isFull = currentMemberCount >= maxCapacity;
+
+  const isAlreadyMember = members.some(
+    (m) => Number(m.user?.id) === Number(user?.id) || Number(m.userId) === Number(user?.id)
+  );
 
   // Get Trip Detail
   const fetchTripDetail = async () => {
@@ -110,6 +120,15 @@ const TripDetailPage = () => {
       toast.error("Please login first");
       return;
     }
+    if (isFull) {
+      toast.info("This trip is already full");
+      return;
+    }
+    if (isAlreadyMember) {
+      toast.info("You are already a member of this trip");
+      return;
+    }
+
     try {
       setJoinLoading(true);
       const response = await mainApi.post(`/trips/${tripId}/requests`);
@@ -269,7 +288,7 @@ const TripDetailPage = () => {
           </div>
         </div>
 
-        {/* Hero Section */}
+        {/* Hero Banner Section */}
         <div className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-gray-900 shadow-md min-h-[380px] sm:min-h-[440px] flex items-end">
           <img
             src={
@@ -283,9 +302,17 @@ const TripDetailPage = () => {
 
           {/* Banner Details */}
           <div className="relative z-10 p-6 sm:p-10 text-white w-full">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-xs font-semibold border border-white/20 text-emerald-200">
                 {trip.category?.name || "General"}
+              </span>
+
+              {/* Members joined badge */}
+              <span className="rounded-full bg-black/40 backdrop-blur-md px-3.5 py-1 text-xs font-semibold border border-white/20 text-white flex items-center gap-1.5">
+                <Users size={13} className="text-emerald-300" />
+                <span>
+                  {currentMemberCount}/{maxCapacity} Members ({isFull ? "Trip Full" : `${spotsLeft} spots left`})
+                </span>
               </span>
             </div>
 
@@ -316,19 +343,21 @@ const TripDetailPage = () => {
           />
           <StatCard
             icon={<Users size={20} />}
-            label="Group Size"
-            value={`${trip.maxMember} People`}
+            label="Members / Capacity"
+            value={`${currentMemberCount} / ${maxCapacity}`}
+            subtext={isFull ? "Full" : `${spotsLeft} spots remaining`}
           />
           <StatCard
             icon={<WalletCards size={20} />}
             label="Estimated Budget"
             value={`฿${Number(trip.budget).toLocaleString("th-TH")}`}
+            subtext="Per person"
           />
         </div>
 
         {/* Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Info */}
+          {/* Main Info (2 cols) */}
           <div className="lg:col-span-2 space-y-6">
             {/* About Trip */}
             <div className="rounded-[28px] bg-white p-6 sm:p-8 border border-gray-100 shadow-xs">
@@ -381,7 +410,12 @@ const TripDetailPage = () => {
                           <div className="flex items-center gap-2 self-end sm:self-auto">
                             <button
                               onClick={() => handleAcceptRequest(req.id)}
-                              className="flex items-center gap-1 rounded-full bg-[#385526] hover:bg-[#2d451e] px-3.5 py-1.5 text-xs font-semibold text-white transition cursor-pointer"
+                              disabled={isFull}
+                              className={`flex items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-semibold text-white transition cursor-pointer ${
+                                isFull 
+                                  ? "bg-gray-300 cursor-not-allowed" 
+                                  : "bg-[#385526] hover:bg-[#2d451e]"
+                              }`}
                             >
                               <Check size={14} />
                               <span>Accept</span>
@@ -402,7 +436,7 @@ const TripDetailPage = () => {
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar (1 col) */}
           <div className="space-y-6">
             {/* Host Card */}
             <div className="rounded-[28px] bg-white p-6 border border-gray-100 shadow-xs">
@@ -424,20 +458,39 @@ const TripDetailPage = () => {
                 </div>
               </div>
 
-              {/* Members */}
-              <TripMembers members={members} />
+              {/* Members List with ratio and remaining spots */}
+              <TripMembers members={members} maxMember={trip.maxMember} />
 
               {/* Action Buttons */}
               <div className="mt-6 space-y-2.5">
                 {!isOwner && (
-                  <button
-                    onClick={handleJoinTrip}
-                    disabled={joinLoading}
-                    className="w-full rounded-xl bg-[#385526] hover:bg-[#2d451e] py-3 text-xs font-semibold text-white shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <UserRoundPlus size={15} />
-                    <span>{joinLoading ? "Sending request..." : "Request to Join Trip"}</span>
-                  </button>
+                  <>
+                    {isAlreadyMember ? (
+                      <div className="w-full rounded-xl bg-emerald-50 border border-emerald-200 py-3 text-xs font-semibold text-emerald-800 flex items-center justify-center gap-1.5">
+                        <UserCheck size={15} className="text-emerald-600" />
+                        <span>You are a member of this trip</span>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleJoinTrip}
+                        disabled={joinLoading || isFull}
+                        className={`w-full rounded-xl py-3 text-xs font-semibold shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          isFull
+                            ? "bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed"
+                            : "bg-[#385526] hover:bg-[#2d451e] text-white disabled:opacity-50"
+                        }`}
+                      >
+                        <UserRoundPlus size={15} />
+                        <span>
+                          {joinLoading
+                            ? "Sending request..."
+                            : isFull
+                            ? "Trip Full (0 spots left)"
+                            : `Request to Join Trip (${spotsLeft} spots left)`}
+                        </span>
+                      </button>
+                    )}
+                  </>
                 )}
 
                 {isOwner && (
