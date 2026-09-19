@@ -2,13 +2,17 @@ import { mainApi } from "@/api/mainApi";
 import { MenuBar } from "@/components/MenuBar";
 import { useCategoryStore } from "@/stores/categoryStore";
 import {
-  Image,
+  Image as ImageIcon,
   CalendarDays,
   Users,
   Plus,
   Minus,
   FileText,
   CircleDollarSign,
+  MapPin,
+  Sparkles,
+  ArrowLeft,
+  Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -31,6 +35,8 @@ const CreateTripPage = () => {
     budget: "",
   });
 
+  const [image, setImage] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -39,7 +45,6 @@ const CreateTripPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -60,36 +65,6 @@ const CreateTripPage = () => {
     }));
   };
 
-  const handleCreateTrip = async (e) => {
-    e.preventDefault();
-
-    try {
-      setLoading(true);
-
-      const response = await mainApi.post("/trips", {
-        title: formData.title,
-        destination: formData.destination,
-        categoryId: Number(formData.categoryId),
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        maxMember: Number(formData.maxMember),
-        description: formData.description,
-        budget: Number(formData.budget),
-        image: image,
-      });
-
-      console.log("Created trip:", response.data.data);
-
-      navigate("/");
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [image, setImage] = useState("");
-  const [uploading, setUploading] = useState(false);
-  
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,7 +72,7 @@ const CreateTripPage = () => {
       setUploading(true);
       const imageUrl = await uploadCloud(file);
       setImage(imageUrl);
-      toast.success("Image uploaded successfully");
+      toast.success("Cover photo uploaded");
     } catch (error) {
       console.error("Image upload error:", error);
       toast.error("Failed to upload image");
@@ -106,297 +81,314 @@ const CreateTripPage = () => {
     }
   };
 
-  return (
-    <div>
-      <MenuBar />
-      <form onSubmit={handleCreateTrip}>
-        <div>
-          <div className="min-h-screen px-8 py-8 sm:px-6 lg:px-10">
-            <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
-              {/* Header */}
-              <div className="mb-7">
-                <h1 className="text-3xl font-bold tracking-normal text-black sm:text-5xl">
-                  Create a Trip
-                </h1>
+  const handleCreateTrip = async (e) => {
+    e.preventDefault();
 
-                <p className="mt-1 max-w-xl text-sm leading-relaxed text-gray-500">
-                  Share your adventure and find people to travel with. Craft a
-                  compelling journey to attract fellow explorers.
-                </p>
+    if (!formData.title.trim() || !formData.destination.trim() || !formData.categoryId) {
+      toast.error("Please fill in all required fields (Title, Destination, Category)");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await mainApi.post("/trips", {
+        title: formData.title,
+        destination: formData.destination,
+        categoryId: Number(formData.categoryId),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        maxMember: Number(formData.maxMember),
+        description: formData.description,
+        budget: Number(formData.budget) || 0,
+        image: image,
+      });
+
+      toast.success("Trip created successfully!");
+      navigate(`/trip-detail/${response.data?.data?.id || ""}`);
+    } catch (error) {
+      console.error("Create trip error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to create trip"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8faf7] flex flex-col">
+      <MenuBar />
+
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 flex flex-col gap-6">
+        {/* Top Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="h-9 w-9 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:text-[#385526] hover:border-[#385526]/30 transition cursor-pointer shadow-2xs"
+            >
+              <ArrowLeft size={18} />
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-gray-900">
+                Create a Trip
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 font-normal mt-0.5">
+                Share your journey and find people to travel with.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* 2-Column Form Layout */}
+        <form onSubmit={handleCreateTrip} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Info Column (2 cols) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Information */}
+            <div className="rounded-[28px] bg-white p-6 sm:p-8 border border-gray-100 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-1">
+                <Sparkles size={18} className="text-[#385526]" />
+                <span>Trip Information</span>
               </div>
 
-              {/* Cover Image */}
-              <section className="rounded-3xl p-5 modern-card">
-                <div className="mb-3 flex items-center gap-1.5 text-md font-semibold text-primary">
-                  <Image size={20} strokeWidth={2} />
-                  Cover Image
-                </div>
-
-                <label className="flex h-52 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50 transition hover:bg-gray-100">
-                  {image ? (
-                    <img
-                      src={image}
-                      alt="Trip cover"
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <>
-                      <div className="mb-2 text-gray-400">
-                        <svg
-                          width="22"
-                          height="22"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="1.7"
-                        >
-                          <path d="M12 16V4" />
-                          <path d="M7 9l5-5 5 5" />
-                          <path d="M5 20h14" />
-                        </svg>
-                      </div>
-
-                      <p className="text-xs font-medium text-gray-500">
-                        Drag and drop an image, or
-                        <span className="text-primary">browse</span>
-                      </p>
-
-                      <p className="mt-1 text-[10px] text-gray-400">
-                        High-resolution photos are recommended
-                      </p>
-                    </>
-                  )}
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
+              {/* Title */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Trip Title <span className="text-red-500">*</span>
                 </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="e.g. Weekend Roadtrip to Chiang Mai"
+                  className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#385526] focus:border-[#385526] transition"
+                />
+              </div>
 
-                {uploading && (
-                  <p className="mt-2 text-center text-sm text-gray-400">
-                    Uploading image...
-                  </p>
-                )}
-              </section>
-
-              {/* Basic Info */}
-              <section className="mt-5 rounded-3xl p-5 modern-card">
-                <div className="mb-4 flex items-center gap-1.5 text-md font-semibold text-primary">
-                  <span className="text-md">ⓘ</span>
-                  Basic Info
-                </div>
-
-                <div className="space-y-4">
-                  {/* Trip Title */}
-                  <div>
-                    <label className="mb-1.5 block text-md font-medium text-gray-600">
-                      Trip Title
-                    </label>
-
+              {/* Destination & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Destination <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <MapPin size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="text"
-                      name="title"
-                      value={formData.title}
+                      name="destination"
+                      value={formData.destination}
                       onChange={handleChange}
-                      placeholder="e.g. Weekend Hiking in the Alps"
-                      className="h-10 w-full rounded-full input-modern px-4 text-sm text-gray-700 outline-none placeholder:text-gray-400"
+                      placeholder="Province, Country"
+                      className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#385526] focus:border-[#385526] transition"
                     />
                   </div>
+                </div>
 
-                  {/* Destination + Category */}
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="mb-1.5 block text-md font-medium text-gray-600">
-                        Destination
-                      </label>
-                      <div>
-                        <input
-                          type="text"
-                          name="destination"
-                          value={formData.destination}
-                          onChange={handleChange}
-                          placeholder="City, Country"
-                          className="h-10 w-full rounded-full input-modern pl-9 pr-6 text-sm text-gray-700 outline-none placeholder:text-gray-400"
-                        />
-                      </div>
-                    </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs sm:text-sm text-gray-900 outline-none focus:ring-1 focus:ring-[#385526] focus:border-[#385526] transition cursor-pointer"
+                  >
+                    <option value="" disabled>
+                      Select Category
+                    </option>
+                    {category.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-                    <div>
-                      <label className="mb-1.5 block text-md font-medium text-gray-600">
-                        Category
-                      </label>
-                      <div>
-                        <select
-                          name="categoryId"
-                          value={formData.categoryId}
-                          onChange={handleChange}
-                          className="h-10 w-full appearance-none rounded-full input-modern pl-9 pr-9 text-sm text-gray-600 outline-none"
-                        >
-                          <option value="" disabled>
-                            Select Category
-                          </option>
-                          {category.map((value) => (
-                            <option key={value.id} value={value.id}>
-                              {value.name}
-                            </option>
-                          ))}
-                        </select>
+              {/* Description */}
+              <div className="pt-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Description & Plan
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={5}
+                  placeholder="Tell potential travel buddies about the plan, activities, vibe, and what kind of people you'd love to invite..."
+                  className="w-full rounded-2xl border border-gray-200 bg-white p-3.5 text-xs sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#385526] focus:border-[#385526] transition resize-none"
+                />
+              </div>
+            </div>
 
-                        <svg
-                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="m6 9 6 6 6-6" />
-                        </svg>
-                      </div>
-                    </div>
+            {/* Schedule & Budget */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Dates */}
+              <div className="rounded-[28px] bg-white p-5 border border-gray-100 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-900 mb-3">
+                  <CalendarDays size={16} className="text-[#385526]" />
+                  <span>Travel Dates</span>
+                </div>
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-[11px] text-gray-500 font-medium block mb-1">Start</span>
+                    <input
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#385526]"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-gray-500 font-medium block mb-1">End</span>
+                    <input
+                      type="date"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-[#385526]"
+                    />
                   </div>
                 </div>
-              </section>
+              </div>
 
-              {/* Dates + Group Info */}
-              <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-                {/* Dates */}
-                <section className="rounded-3xl p-5 modern-card">
-                  <div className="mb-4 flex items-center gap-1.5 text-md font-semibold text-primary">
-                    <CalendarDays size={14} />
-                    Dates
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-600">
-                        Start
-                      </label>
-
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleChange}
-                        className="h-9 w-full rounded-full input-modern px-3 text-sm text-gray-500 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-600">
-                        End
-                      </label>
-
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleChange}
-                        className="h-9 w-full rounded-full input-modern px-3 text-sm text-gray-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                </section>
-
-                {/* Group Info */}
-                <section className="rounded-3xl p-5 modern-card">
-                  <div className="mb-4 flex items-center gap-1.5 text-md font-semibold text-primary">
-                    <Users size={14} />
-                    Group Info
-                  </div>
-
-                  <label className="mb-1.5 block text-sm font-medium text-gray-600">
-                    Max Members
-                  </label>
-
-                  <div className="flex items-center gap-2">
+              {/* Members Stepper */}
+              <div className="rounded-[28px] bg-white p-5 border border-gray-100 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-900 mb-3">
+                  <Users size={16} className="text-[#385526]" />
+                  <span>Max Members</span>
+                </div>
+                <div className="flex flex-col items-center justify-center my-auto">
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={decreaseMember}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:bg-gray-100"
+                      className="h-8 w-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition cursor-pointer"
                     >
-                      <Minus size={13} />
+                      <Minus size={14} />
                     </button>
-
-                    <div className="flex h-8 min-w-10 items-center justify-center rounded-full border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-600">
+                    <span className="text-xl font-bold text-gray-900 w-10 text-center">
                       {formData.maxMember}
-                    </div>
-
+                    </span>
                     <button
                       type="button"
                       onClick={increaseMember}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:bg-gray-100"
+                      className="h-8 w-8 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition cursor-pointer"
                     >
-                      <Plus size={13} />
+                      <Plus size={14} />
                     </button>
                   </div>
+                  <span className="text-[11px] text-gray-400 mt-2">Including yourself</span>
+                </div>
+              </div>
 
-                  <p className="mt-2 text-[10px] text-gray-400">
-                    Including yourself
-                  </p>
-                </section>
-
-                {/* Budget */}
-                <div className="rounded-3xl p-5 modern-card">
-                  <label className="mb-4 flex items-center gap-1.5 text-md font-semibold text-primary">
-                    <CircleDollarSign size={14} />
-                    Budget
-                  </label>
-
+              {/* Budget */}
+              <div className="rounded-[28px] bg-white p-5 border border-gray-100 shadow-xs flex flex-col justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-900 mb-3">
+                  <CircleDollarSign size={16} className="text-[#385526]" />
+                  <span>Estimated Budget (฿)</span>
+                </div>
+                <div className="my-auto">
                   <input
                     type="number"
                     name="budget"
                     value={formData.budget}
                     onChange={handleChange}
-                    placeholder="e.g. 15000"
-                    className="h-10 w-full rounded-full input-modern px-4 text-sm text-gray-700 outline-none placeholder:text-gray-400"
+                    placeholder="e.g. 5000"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#385526] focus:border-[#385526] transition"
                   />
+                  <span className="text-[11px] text-gray-400 mt-1 block">Approx. cost per person</span>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Description */}
-              <section className="mt-5 rounded-3xl p-5 modern-card">
-                <div className="mb-3 flex items-center gap-1.5 text-md font-semibold text-primary">
-                  <FileText size={14} />
-                  Description
-                </div>
+          {/* Sidebar / Upload & Action (1 col) */}
+          <div className="space-y-6">
+            {/* Cover Photo */}
+            <div className="rounded-[28px] bg-white p-6 border border-gray-100 shadow-xs">
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
+                <ImageIcon size={18} className="text-[#385526]" />
+                <span>Cover Photo</span>
+              </div>
 
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="4"
-                  placeholder="Tell potential travel buddies about the vibe of this trip. What's the main goal? What kind of people are you looking to find?"
-                  className="w-full resize-none input-modern p-4 text-sm leading-relaxed text-gray-700 outline-none placeholder:text-gray-400"
+              <label className="relative flex min-h-60 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 bg-[#f8faf7] hover:bg-[#f2f6f0] hover:border-[#385526]/40 transition group">
+                {image ? (
+                  <>
+                    <img
+                      src={image}
+                      alt="Trip cover"
+                      className="h-full w-full object-cover min-h-60"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-semibold">
+                      Click to change photo
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center p-6 flex flex-col items-center">
+                    <div className="h-12 w-12 rounded-full bg-white shadow-2xs border border-gray-100 flex items-center justify-center text-[#385526] mb-2 group-hover:scale-110 transition-transform">
+                      <ImageIcon size={22} />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-800">
+                      {uploading ? "Uploading photo..." : "Upload cover image"}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1">
+                      PNG, JPG, or WEBP (Landscape)
+                    </p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={uploading}
+                  className="hidden"
                 />
-              </section>
+              </label>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="mt-6 flex justify-end gap-3">
-                <button
-                  type="button"
-                  className="rounded-full border border-gray-200 bg-white px-6 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+            {/* Publishing Box */}
+            <div className="rounded-[28px] bg-white p-6 border border-gray-100 shadow-xs space-y-4">
+              <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f2f6f0] text-xs text-[#2d451e] border border-[#385526]/10">
+                <Info size={16} className="shrink-0 text-[#385526] mt-0.5" />
+                <span>Your trip will be published to the Explore feed and members will be able to request to join.</span>
+              </div>
 
+              <div className="flex flex-col gap-2.5">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="btn-primary px-7 py-2.5 text-sm font-semibold text-white"
+                  disabled={loading || uploading}
+                  className="w-full rounded-xl bg-[#385526] hover:bg-[#2d451e] py-3 text-xs font-semibold text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {loading ? "Creating..." : "Create Trip"}
+                  {loading ? (
+                    <>
+                      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      <span>Publishing Trip...</span>
+                    </>
+                  ) : (
+                    "Publish Trip"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer text-center"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </main>
     </div>
   );
 };
+
 export default CreateTripPage;

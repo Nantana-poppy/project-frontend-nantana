@@ -28,6 +28,23 @@ const useUserStore = create(
         }));
       },
 
+      fetchCurrentUser: async () => {
+        try {
+          const resp = await mainApi.get("/auth/me");
+          if (resp.data.user) {
+            set((state) => ({
+              user: {
+                ...state.user,
+                ...resp.data.user,
+              },
+            }));
+            return resp.data.user;
+          }
+        } catch (error) {
+          console.error("fetchCurrentUser error:", error);
+        }
+      },
+
       logout: () => {
         set({
           user: null,

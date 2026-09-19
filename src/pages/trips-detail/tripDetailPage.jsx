@@ -10,23 +10,28 @@ import {
   MapPin,
   Check,
   X,
+  Trash2,
+  ArrowLeft,
+  Share2,
 } from "lucide-react";
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { toast } from "react-toastify";
 import TripMembers from "./TripMember";
 import useTripStore from "@/stores/tripStroe";
 import useUserStore from "@/stores/userStore";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
-function Stat({ icon, label, value }) {
+function StatCard({ icon, label, value }) {
   return (
-    <div className="flex items-center justify-center gap-7 rounded-2xl bg-white px-3 py-4 shadow-sm">
-      <div className="text-[#0F4C81]">{icon}</div>
-
+    <div className="flex items-center gap-3.5 rounded-2xl bg-white p-3.5 border border-gray-100 shadow-2xs">
+      <div className="h-10 w-10 rounded-xl bg-[#f2f6f0] text-[#385526] flex items-center justify-center shrink-0">
+        {icon}
+      </div>
       <div>
-        <p className="text-md text-gray-400">{label}</p>
-
-        <p className="mt-0.5 text-md font-semibold">{value}</p>
+        <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{label}</p>
+        <p className="text-xs sm:text-sm font-bold text-gray-900 mt-0.5">{value}</p>
       </div>
     </div>
   );
@@ -44,10 +49,18 @@ const TripDetailPage = () => {
   const [requests, setRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
 
-  const [joinLoading, setJoinLoading] = useState(false);
-
   const members = useTripStore((state) => state.members);
   const fetchMembers = useTripStore((state) => state.fetchMembers);
+  const deleteTrip = useTripStore((state) => state.deleteTrip);
+  const savedTripIds = useTripStore((state) => state.savedTripIds);
+  const toggleSaveTrip = useTripStore((state) => state.toggleSaveTrip);
+
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const isSaved = savedTripIds.includes(Number(tripId));
 
   const isOwner =
     user?.id && trip?.owner?.id
@@ -58,9 +71,7 @@ const TripDetailPage = () => {
   const fetchTripDetail = async () => {
     try {
       setLoading(true);
-
       const response = await mainApi.get(`/trips/${tripId}`);
-
       setTrip(response.data.data);
     } catch (error) {
       console.error("Get trip detail error:", error.response?.data || error);
@@ -78,17 +89,14 @@ const TripDetailPage = () => {
     }
   };
 
-  // Get Join Requests
-  // Owner only
+  // Get Join Requests (Owner only)
   const fetchJoinRequests = async () => {
     if (!tripId || !isOwner) return;
 
     try {
       setRequestsLoading(true);
-
       const response = await mainApi.get(`/trips/${tripId}/requests`);
-
-      setRequests(response.data.data);
+      setRequests(response.data.data || []);
     } catch (error) {
       console.error("Get join requests error:", error.response?.data || error);
     } finally {
@@ -98,18 +106,35 @@ const TripDetailPage = () => {
 
   // Join Trip
   const handleJoinTrip = async () => {
+    if (!user) {
+      toast.error("Please login first");
+      return;
+    }
     try {
       setJoinLoading(true);
-
       const response = await mainApi.post(`/trips/${tripId}/requests`);
-
-      alert(response.data.message || "Join request sent successfully");
+      toast.success(response.data.message || "Join request sent successfully");
     } catch (error) {
       console.error("Join trip error:", error.response?.data || error);
-
-      alert(error.response?.data?.message || "Failed to send join request");
+      toast.error(error.response?.data?.message || "Failed to send join request");
     } finally {
       setJoinLoading(false);
+    }
+  };
+
+  // Delete Trip
+  const handleDeleteTrip = async () => {
+    try {
+      setDeleteLoading(true);
+      await deleteTrip(tripId);
+      setShowDeleteModal(false);
+      toast.success("Trip deleted successfully");
+      navigate("/profile");
+    } catch (error) {
+      console.error("Delete trip error:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Failed to delete trip");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -117,12 +142,12 @@ const TripDetailPage = () => {
   const handleAcceptRequest = async (requestId) => {
     try {
       await mainApi.patch(`/requests/${requestId}/accept`);
-      alert("Join request accepted");
+      toast.success("Join request accepted");
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
       await fetchTripMembers();
     } catch (error) {
       console.error("Accept request error:", error.response?.data || error);
-      alert(error.response?.data?.message || "Failed to accept request");
+      toast.error(error.response?.data?.message || "Failed to accept request");
     }
   };
 
@@ -130,48 +155,57 @@ const TripDetailPage = () => {
   const handleRejectRequest = async (requestId) => {
     try {
       await mainApi.patch(`/requests/${requestId}/reject`);
-      alert("Join request rejected")
+      toast.info("Join request rejected");
       setRequests((prev) => prev.filter((request) => request.id !== requestId));
     } catch (error) {
       console.error("Reject request error:", error.response?.data || error);
-      alert(error.response?.data?.message || "Failed to reject request");
+      toast.error(error.response?.data?.message || "Failed to reject request");
     }
   };
 
-  // Save Trip
+  // Save / Unsave Trip
   const handleSaveTrip = async () => {
+    if (!user) {
+      toast.error("Please login first");
+      return;
+    }
+
     try {
-      await mainApi.post(`/trips/${tripId}/save`);
-      alert("Trip saved successfully");
+      setSaveLoading(true);
+      const res = await toggleSaveTrip(tripId);
+      if (res.isSaved) {
+        toast.success(res.message || "Trip saved successfully");
+      } else {
+        toast.info(res.message || "Trip removed from saved trips");
+      }
     } catch (error) {
       console.error("Save trip error:", error.response?.data || error);
-      alert(error.response?.data?.message || "Failed to save trip");
+      toast.error(error.response?.data?.message || "Failed to save trip");
+    } finally {
+      setSaveLoading(false);
     }
   };
 
   // Initial Load
   useEffect(() => {
     if (!tripId) return;
-
     fetchTripDetail();
     fetchMembers(tripId);
   }, [tripId]);
 
-  // Check ว่าคนนี้ใช้ Owner ไหม ถ้าใช่จะ Fetch Request หลังจากรู้ว่าคนที่ login เป็น Owner
   useEffect(() => {
     if (!tripId || !isOwner) return;
-
     fetchJoinRequests();
   }, [tripId, isOwner]);
 
   // Loading
   if (loading) {
     return (
-      <div>
+      <div className="min-h-screen bg-[#f8faf7] flex flex-col">
         <MenuBar />
-
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-[#0F4C81]">Loading trip...</p>
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
+          <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#385526] border-t-transparent" />
+          <p className="text-xs text-gray-500 font-medium">Loading trip details...</p>
         </div>
       </div>
     );
@@ -180,11 +214,17 @@ const TripDetailPage = () => {
   // Trip not found
   if (!trip) {
     return (
-      <div>
+      <div className="min-h-screen bg-[#f8faf7] flex flex-col">
         <MenuBar />
-
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-red-500">Trip not found</p>
+        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <p className="text-base font-semibold text-gray-800">Trip not found</p>
+          <p className="text-xs text-gray-500 mt-1 mb-4">This trip may have been removed or deleted.</p>
+          <button
+            onClick={() => navigate("/")}
+            className="rounded-full bg-[#385526] text-white px-5 py-2 text-xs font-semibold"
+          >
+            Back to Home
+          </button>
         </div>
       </div>
     );
@@ -193,244 +233,240 @@ const TripDetailPage = () => {
   const duration =
     moment(trip.endDate).diff(moment(trip.startDate), "days") + 1;
 
+  const effectiveHostAvatar =
+    isOwner && user?.profileImage
+      ? user.profileImage
+      : trip.owner?.profileImage || "https://i.pravatar.cc/100?img=11";
+
   return (
-    <div>
+    <div className="min-h-screen bg-[#f8faf7] flex flex-col">
       <MenuBar />
 
-      <div className="min-h-screen bg-[#f5f5f2] px-8 py-8 text-[#17211c]">
-        <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
-          {/* Header */}
-          <h1 className="mb-3 text-5xl font-semibold tracking-[1px]">
-            Trip Detail
-          </h1>
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 flex flex-col gap-6">
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-xs font-semibold text-gray-600 hover:text-[#385526] transition cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Trips</span>
+          </button>
 
-          {/* Main Card */}
-          <div className="overflow-hidden rounded-3xl bg-[#f8f8f5] shadow-[0_8px_40px_rgba(0,0,0,0.07)]">
-            <section className="relative h-90 overflow-hidden rounded-3xl">
-              <img
-                src={
-                  trip.image ||
-                  "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=85"
-                }
-                alt={trip.title}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveTrip}
+              disabled={saveLoading}
+              className={`h-9 px-4 rounded-full border flex items-center gap-1.5 text-xs font-semibold transition cursor-pointer ${
+                isSaved
+                  ? "bg-[#385526] text-white border-[#385526] shadow-xs"
+                  : "bg-white text-gray-700 border-gray-200 hover:bg-[#f2f6f0]"
+              }`}
+            >
+              <Bookmark size={14} fill={isSaved ? "currentColor" : "none"} />
+              <span>{isSaved ? "Saved" : "Save"}</span>
+            </button>
+          </div>
+        </div>
 
-              <div className="absolute inset-0 bg-linear-to-t from-black/65 via-black/10 to-black/10" />
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-gray-900 shadow-md min-h-[380px] sm:min-h-[440px] flex items-end">
+          <img
+            src={
+              trip.image ||
+              "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1600&q=85"
+            }
+            alt={trip.title}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
 
-              <div className="absolute bottom-7 left-7 right-7 text-white">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="rounded-md bg-[#0F4C81] px-2.5 py-1 font-semibold">
-                    {trip.category?.name}
-                  </span>
-                </div>
+          {/* Banner Details */}
+          <div className="relative z-10 p-6 sm:p-10 text-white w-full">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="rounded-full bg-white/20 backdrop-blur-md px-3.5 py-1 text-xs font-semibold border border-white/20 text-emerald-200">
+                {trip.category?.name || "General"}
+              </span>
+            </div>
 
-                <h1 className="text-xl font-bold tracking-tight md:text-6xl">
-                  {trip.title}
-                </h1>
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+              {trip.title}
+            </h1>
 
-                <div className="mt-3 flex items-center gap-1 text-base text-white/90">
-                  <MapPin size={20} className="shrink-0" />
-
-                  <span>{trip.destination}</span>
-                </div>
-              </div>
-            </section>
-
-            {/* CONTENT */}
-            <div className="p-4 md:p-6">
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Stat
-                  icon={<CalendarDays size={45} />}
-                  label="Dates"
-                  value={`${moment(trip.startDate).format("MMM DD")} - ${moment(
-                    trip.endDate,
-                  ).format("MMM DD")}`}
-                />
-
-                <Stat
-                  icon={<Clock3 size={45} />}
-                  label="Duration"
-                  value={`${duration} Days`}
-                />
-
-                <Stat
-                  icon={<Users size={45} />}
-                  label="Max Member"
-                  value={`${trip.maxMember} People`}
-                />
-
-                <Stat
-                  icon={<WalletCards size={45} />}
-                  label="Budget"
-                  value={`฿${Number(trip.budget).toLocaleString("th-TH")}`}
-                />
-              </div>
-
-              {/* Lower section */}
-              <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_330px]">
-                {/* ABOUT */}
-                <section className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
-                  <h2 className="text-xl font-semibold">About this trip</h2>
-
-                  <p className="mt-3 leading-5 text-gray-500">
-                    {trip.description}
-                  </p>
-                </section>
-
-                {/* OWNER */}
-                <div className="rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
-                  <p className="text-md font-medium uppercase tracking-wider text-gray-400">
-                    Owner trip
-                  </p>
-
-                  <div className="mt-2 flex items-center gap-3">
-                    <img
-                      src={
-                        trip.owner?.profileImage ||
-                        "https://i.pravatar.cc/100?img=11"
-                      }
-                      alt={trip.owner?.username}
-                      className="h-11 w-11 rounded-full object-cover"
-                    />
-
-                    <div>
-                      <p className="text-md font-semibold">
-                        {trip.owner?.firstName} {trip.owner?.lastName}
-                      </p>
-
-                      <button
-                        onClick={() => navigate(`/profile/${trip.owner.id}`)}
-                        className="mt-0.5 text-sm font-medium text-[#0F4C81]"
-                      >
-                        View Profile
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Members */}
-                  <TripMembers members={members} />
-                </div>
-
-                {/* ACTION BUTTONS  */}
-                <div className="mt-5 space-y-2">
-                  {/* ไม่แสดง Join ให้ Owner */}
-                  {!isOwner && (
-                    <button
-                      onClick={handleJoinTrip}
-                      disabled={joinLoading}
-                      className="flex h-9 w-full items-center justify-center gap-2 rounded-full bg-[#0F4C81] text-md text-white transition hover:bg-[#064174] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <UserRoundPlus size={13} />
-
-                      {joinLoading ? "Sending..." : "Join Trip"}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleSaveTrip}
-                    className="flex h-9 w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white text-md font-medium text-gray-600 transition hover:bg-gray-50"
-                  >
-                    <Bookmark size={13} />
-                    Save for Later
-                  </button>
-                </div>
-              </div>
-
-              {/* OWNER ONLY : JOIN REQUESTS */}
-              {isOwner && (
-                <section className="mt-6 rounded-3xl border border-black/5 bg-white p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-semibold">Join Requests</h2>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        People who want to join this trip
-                      </p>
-                    </div>
-
-                    <span className="rounded-full bg-[#0F4C81]/10 px-3 py-1 text-sm font-medium text-[#0F4C81]">
-                      {
-                        requests.filter(
-                          (request) => request.status === "PENDING",
-                        ).length
-                      }
-                      Pending
-                    </span>
-                  </div>
-
-                  <div className="my-4 h-px bg-gray-200" />
-
-                  {requestsLoading ? (
-                    <p className="py-5 text-center text-sm text-gray-500">
-                      Loading requests...
-                    </p>
-                  ) : requests.filter((request) => request.status === "PENDING")
-                      .length === 0 ? (
-                    <p className="py-5 text-center text-sm text-gray-500">
-                      No pending join requests
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {requests
-                        .filter((request) => request.status === "PENDING")
-                        .map((request) => (
-                          <div
-                            key={request.id}
-                            className="flex items-center justify-between rounded-2xl border border-gray-200 p-3"
-                          >
-                            {/* User */}
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={
-                                  request.user?.profileImage ||
-                                  "https://i.pravatar.cc/100?img=12"
-                                }
-                                alt={request.user?.username}
-                                className="h-12 w-12 rounded-full object-cover"
-                              />
-
-                              <div>
-                                <p className="font-semibold">
-                                  {request.user?.firstName}{" "}
-                                  {request.user?.lastName}
-                                </p>
-
-                                <p className="text-sm text-gray-500">
-                                  @{request.user?.username}
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Accept / Reject */}
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleAcceptRequest(request.id)}
-                                className="flex items-center gap-1 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-                              >
-                                <Check size={15} />
-                                Accept
-                              </button>
-
-                              <button
-                                onClick={() => handleRejectRequest(request.id)}
-                                className="flex items-center gap-1 rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
-                              >
-                                <X size={15} />
-                                Reject
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </section>
-              )}
+            <div className="mt-2.5 flex items-center gap-2 text-xs sm:text-sm text-white/90">
+              <MapPin size={16} className="text-emerald-300 shrink-0" />
+              <span>{trip.destination}</span>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <StatCard
+            icon={<CalendarDays size={20} />}
+            label="Dates"
+            value={`${moment(trip.startDate).format("MMM DD")} - ${moment(
+              trip.endDate,
+            ).format("MMM DD")}`}
+          />
+          <StatCard
+            icon={<Clock3 size={20} />}
+            label="Duration"
+            value={`${duration > 0 ? duration : 1} Days`}
+          />
+          <StatCard
+            icon={<Users size={20} />}
+            label="Group Size"
+            value={`${trip.maxMember} People`}
+          />
+          <StatCard
+            icon={<WalletCards size={20} />}
+            label="Estimated Budget"
+            value={`฿${Number(trip.budget).toLocaleString("th-TH")}`}
+          />
+        </div>
+
+        {/* Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* About Trip */}
+            <div className="rounded-[28px] bg-white p-6 sm:p-8 border border-gray-100 shadow-xs">
+              <h2 className="text-lg font-bold text-gray-900 mb-3">About this trip</h2>
+              <p className="text-sm leading-relaxed text-gray-600 whitespace-pre-line">
+                {trip.description || "No description provided for this trip."}
+              </p>
+            </div>
+
+            {/* Owner Only: Join Requests */}
+            {isOwner && (
+              <div className="rounded-[28px] bg-white p-6 sm:p-8 border border-gray-100 shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Join Requests</h2>
+                    <p className="text-xs text-gray-500">People who requested to join your journey</p>
+                  </div>
+                  <span className="rounded-full bg-[#f2f6f0] text-[#2d451e] px-3 py-1 text-xs font-semibold border border-[#385526]/10">
+                    {requests.filter((r) => r.status === "PENDING").length} Pending
+                  </span>
+                </div>
+
+                {requestsLoading ? (
+                  <p className="py-6 text-center text-xs text-gray-400">Loading requests...</p>
+                ) : requests.filter((r) => r.status === "PENDING").length === 0 ? (
+                  <p className="py-6 text-center text-xs text-gray-400">No pending join requests</p>
+                ) : (
+                  <div className="space-y-3">
+                    {requests
+                      .filter((r) => r.status === "PENDING")
+                      .map((req) => (
+                        <div
+                          key={req.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-[#f8faf7] border border-gray-100"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={req.user?.profileImage || "https://i.pravatar.cc/100?img=12"}
+                              alt={req.user?.username}
+                              className="h-10 w-10 rounded-full object-cover border border-white shadow-2xs"
+                            />
+                            <div>
+                              <p className="text-xs font-semibold text-gray-900">
+                                {req.user?.firstName} {req.user?.lastName}
+                              </p>
+                              <p className="text-[11px] text-gray-500">@{req.user?.username}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-auto">
+                            <button
+                              onClick={() => handleAcceptRequest(req.id)}
+                              className="flex items-center gap-1 rounded-full bg-[#385526] hover:bg-[#2d451e] px-3.5 py-1.5 text-xs font-semibold text-white transition cursor-pointer"
+                            >
+                              <Check size={14} />
+                              <span>Accept</span>
+                            </button>
+                            <button
+                              onClick={() => handleRejectRequest(req.id)}
+                              className="flex items-center gap-1 rounded-full border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 px-3.5 py-1.5 text-xs font-semibold text-gray-600 transition cursor-pointer"
+                            >
+                              <X size={14} />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Host Card */}
+            <div className="rounded-[28px] bg-white p-6 border border-gray-100 shadow-xs">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 block mb-3">
+                Trip Host
+              </span>
+
+              <div className="flex items-center gap-3">
+                <img
+                  src={effectiveHostAvatar}
+                  alt={trip.owner?.username}
+                  className="h-12 w-12 rounded-full object-cover border border-gray-100 shadow-2xs"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    {trip.owner?.firstName} {trip.owner?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">@{trip.owner?.username}</p>
+                </div>
+              </div>
+
+              {/* Members */}
+              <TripMembers members={members} />
+
+              {/* Action Buttons */}
+              <div className="mt-6 space-y-2.5">
+                {!isOwner && (
+                  <button
+                    onClick={handleJoinTrip}
+                    disabled={joinLoading}
+                    className="w-full rounded-xl bg-[#385526] hover:bg-[#2d451e] py-3 text-xs font-semibold text-white shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <UserRoundPlus size={15} />
+                    <span>{joinLoading ? "Sending request..." : "Request to Join Trip"}</span>
+                  </button>
+                )}
+
+                {isOwner && (
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    disabled={deleteLoading}
+                    className="w-full rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 py-2.5 text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Trash2 size={15} />
+                    <span>Delete This Trip</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Delete Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => !deleteLoading && setShowDeleteModal(false)}
+        onConfirm={handleDeleteTrip}
+        loading={deleteLoading}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? This action cannot be undone."
+        confirmText="Delete Trip"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

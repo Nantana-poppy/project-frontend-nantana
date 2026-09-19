@@ -1,16 +1,17 @@
 import { MenuBar } from "@/components/MenuBar";
-import { Map, Grid3X3, Info } from "lucide-react";
+import { Map, Grid3X3, Info, Plus, Compass } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { mainApi } from "@/api/mainApi";
 import useUserStore from "@/stores/userStore";
-import TripCard from "@/components/card/TripCard";
+import TripCard from "@/components/card/tripCard";
 import moment from "moment";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
 
   const user = useUserStore((state) => state.user);
+  const updateUser = useUserStore((state) => state.updateUser);
 
   const [profile, setProfile] = useState(null);
   const [trips, setTrips] = useState([]);
@@ -20,16 +21,18 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        // ข้อมูล user ที่ login
-        setProfile(user);
-        // ดึง trip ที่ user คนนี้เป็น owner
+        const meResp = await mainApi.get("/auth/me");
+        if (meResp.data?.user) {
+          updateUser(meResp.data.user);
+          setProfile(meResp.data.user);
+        } else {
+          setProfile(user);
+        }
+
         const response = await mainApi.get("/users/me/trips");
-        setTrips(response.data.data);
+        setTrips(response.data.data || []);
       } catch (error) {
-        console.error(
-          "Get profile/trips error:",
-          error.response?.data || error,
-        );
+        console.error("Get profile/trips error:", error.response?.data || error);
       } finally {
         setLoading(false);
       }
@@ -40,162 +43,166 @@ export default function ProfilePage() {
     } else {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
   if (loading) {
     return (
-      <>
+      <div className="min-h-screen bg-[#f8faf7] flex flex-col">
         <MenuBar />
-        <div className="flex min-h-screen items-center justify-center">
-          <p>Loading...</p>
+        <div className="flex flex-1 items-center justify-center gap-2">
+          <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#385526] border-t-transparent" />
+          <p className="text-xs text-gray-500 font-medium">Loading profile...</p>
         </div>
-      </>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <>
+      <div className="min-h-screen bg-[#f8faf7] flex flex-col">
         <MenuBar />
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-          <p className="text-gray-500">Please login first</p>
-
+        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <p className="text-base font-semibold text-gray-800">Please log in to view your profile</p>
           <button
             onClick={() => navigate("/login")}
-            className="rounded-full bg-[#0F4C81] px-6 py-2 text-white"
+            className="mt-4 rounded-full bg-[#385526] hover:bg-[#2d451e] px-6 py-2.5 text-xs font-semibold text-white shadow-xs transition"
           >
-            Login
+            Log In
           </button>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#f8faf7] flex flex-col">
       <MenuBar />
 
-      <div className="min-h-screen px-8 py-8 md:px-8 lg:px-12">
-        <div className="mx-auto max-w-7xl p-10 bg-slate-50/90 rounded-4xl shadow-lg">
-          {/* Profile */}
-          <div className="rounded-[38px] bg-white px-8 py-8 shadow-lg md:px-12 md:py-10">
-            <div className="flex flex-col gap-20 md:flex-row md:items-center">
-              {/* Profile Image */}
-              <div className="flex shrink-0 flex-col items-center">
-                <img
-                  src={
-                    user.profileImage ||
-                    "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
-                  }
-                  alt="profile"
-                  className="h-50 w-50 rounded-full object-cover"
-                />
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 flex flex-col gap-6">
+        {/* Profile Header Card */}
+        <div className="rounded-[32px] sm:rounded-[40px] bg-white p-6 sm:p-10 border border-gray-100 shadow-xs">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              <img
+                src={
+                  user.profileImage ||
+                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330"
+                }
+                alt="Profile"
+                className="h-28 w-28 sm:h-36 sm:max-w-36 rounded-full object-cover border-4 border-[#f2f6f0] shadow-sm"
+              />
+            </div>
 
-                <div className="mt-5 flex gap-2">
-                  <button
-                    className="rounded-full bg-[#0F4C81] px-6 py-2 text-sm font-medium text-white hover:bg-[#0b3d69]"
-                    onClick={() => navigate("/edit-profile")}
-                  >
-                    Edit Profile
-                  </button>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+                    {user.firstName} {user.lastName}
+                  </h1>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">
+                    @{user.username}
+                  </p>
                 </div>
+
+                <button
+                  onClick={() => navigate("/edit-profile")}
+                  className="rounded-full bg-[#385526] hover:bg-[#2d451e] px-5 py-2 text-xs font-semibold text-white shadow-xs transition cursor-pointer self-center sm:self-auto"
+                >
+                  Edit Profile
+                </button>
               </div>
 
-              {/* User Information */}
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 md:text-5xl">
-                  {user.firstName} {user.lastName}
-                </h1>
+              {/* Bio */}
+              <p className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed max-w-2xl">
+                {user.bio || "No bio added yet. Tell other travelers about your travel style!"}
+              </p>
 
-                <p className="mt-5 md:text-lg text-sm text-gray-500">@{user.username}</p>
+              <div className="my-5 h-px bg-gray-100" />
 
-                <p className="mt-5 max-w-3xl md:text-lg text-sm leading-6 text-gray-700">
-                  {user.bio || "No bio yet."}
-                </p>
-
-                <div className="my-6 h-px bg-gray-200" />
-
-                {/* Stats */}
-                <div className="flex gap-12 md:gap-20">
-                  <div>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {user._count?.followers || 0}
-                    </p>
-                    <p className="text-[10px] uppercase text-gray-500">
-                      Followers
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {user._count?.following || 0}
-                    </p>
-                    <p className="text-[10px] uppercase text-gray-500">
-                      Following
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {trips.length}
-                    </p>
-                    <p className="text-[10px] uppercase text-gray-500">Trips</p>
-                  </div>
+              {/* Stats */}
+              <div className="flex items-center justify-center sm:justify-start gap-8 sm:gap-12 text-center">
+                <div>
+                  <p className="text-lg font-bold text-gray-900">{trips.length}</p>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                    My Trips
+                  </p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900">
+                    {user._count?.followers || 0}
+                  </p>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                    Followers
+                  </p>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-gray-900">
+                    {user._count?.following || 0}
+                  </p>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">
+                    Following
+                  </p>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="mt-14 border-b border-gray-200">
-            <div className="flex gap-8">
-              <button className="flex items-center gap-2 border-b-2 border-[#0F4C81] px-1 pb-3 text-md font-medium text-[#0F4C81]">
-                <Map size={25} />
-                My Trips
-              </button>
-
-              <button className="flex items-center gap-2 px-1 pb-3 text-md text-gray-500 hover:text-gray-800">
-                <Grid3X3 size={25} />
-                Posts
-              </button>
-
-              <button className="flex items-center gap-2 px-1 pb-3 text-md text-gray-500 hover:text-gray-800">
-                <Info size={25} />
-                About
-              </button>
-            </div>
-          </div>
-
-          {/* My Trips */}
-          <div className="mt-5 grid grid-cols-1 lg:grid-cols-3">
-            {trips.length > 0 ? (
-              trips.map((trip) => (
-                <TripCard
-                  tripId={trip.id}
-                  key={trip.id}
-                  category={trip.category.name}
-                  image={trip.image}
-                  title={trip.title}
-                  location={trip.destination}
-                  dateRange={
-                    moment(trip.startDate).format("L") +
-                    " - " +
-                    moment(trip.endDate).format("L")
-                  }
-                  price={Number(trip.budget).toLocaleString("th-TH")}
-                  hostName={trip.owner.firstName + " " + trip.owner.lastName}
-                  hostAvatar={trip.owner?.profileImage}
-                  joined={trip.maxMember}
-                />
-              ))
-            ) : (
-              <div className="col-span-full py-10 text-center text-gray-500">
-                You haven't created any trips yet.
-              </div>
-            )}
           </div>
         </div>
-      </div>
-    </>
+
+        {/* Section Tabs */}
+        <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+          <button className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#385526] text-white shadow-xs">
+            <Map size={15} />
+            <span>My Created Trips ({trips.length})</span>
+          </button>
+        </div>
+
+        {/* Trips Grid */}
+        {trips.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl bg-white border border-gray-100 shadow-xs">
+            <div className="h-14 w-14 rounded-full bg-[#f2f6f0] flex items-center justify-center text-[#385526] mb-3">
+              <Compass size={26} />
+            </div>
+            <p className="text-base font-semibold text-gray-800">
+              You haven't created any trips yet
+            </p>
+            <p className="text-xs text-gray-500 max-w-sm mt-1 mb-5">
+              Ready to host your own adventure? Create a trip and find travel companions!
+            </p>
+            <button
+              onClick={() => navigate("/create-trip")}
+              className="rounded-full bg-[#385526] hover:bg-[#2d451e] text-white px-6 py-2.5 text-xs font-semibold shadow-xs transition flex items-center gap-2 cursor-pointer"
+            >
+              <Plus size={16} />
+              <span>Create Your First Trip</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {trips.map((trip) => (
+              <TripCard
+                key={trip.id}
+                tripId={trip.id}
+                hostId={trip.owner?.id || user?.id}
+                category={trip.category?.name}
+                image={trip.image}
+                title={trip.title}
+                location={trip.destination}
+                dateRange={
+                  moment(trip.startDate).format("L") +
+                  " - " +
+                  moment(trip.endDate).format("L")
+                }
+                price={Number(trip.budget).toLocaleString("th-TH")}
+                hostName={`${user.firstName} ${user.lastName}`}
+                hostAvatar={user.profileImage}
+                joined={trip.maxMember}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Heart, MessageCircle, MapPin } from "lucide-react";
-
+import { Heart, MessageCircle, MapPin, Send } from "lucide-react";
+import { toast } from "react-toastify";
 import { mainApi } from "@/api/mainApi";
 import useUserStore from "@/stores/userStore";
 
@@ -16,14 +16,12 @@ export default function PostCard({ post }) {
 
   const handleLike = async () => {
     if (!user) {
+      toast.info("Please login to like this post");
       return;
     }
 
-    // กันกดซ้ำ เพราะ backend ตอนนี้ไม่มี unlike ต้องไปทำเพิ่ม
-    // TODO: ต้องไปเพิ่ม DB สำหรับ Unlike
-    if (liked) {
-      return;
-    }
+    if (liked) return;
+
     try {
       await mainApi.post(`/posts/${post.id}/like`);
       setLiked(true);
@@ -36,111 +34,129 @@ export default function PostCard({ post }) {
   const handleComment = async (e) => {
     e.preventDefault();
 
-    if (!comment.trim()) {
+    if (!user) {
+      toast.info("Please login to comment");
       return;
     }
 
+    if (!comment.trim()) return;
+
     try {
       setCommentLoading(true);
-
       await mainApi.post(`/posts/${post.id}/comments`, {
         comment: comment.trim(),
       });
-
       setComment("");
-
-      alert("Comment added successfully");
+      toast.success("Comment added successfully");
     } catch (error) {
       console.error("Comment error:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Failed to add comment");
     } finally {
       setCommentLoading(false);
     }
   };
 
-  return (
-    <article className="overflow-hidden rounded-3xl bg-white shadow-sm">
-      {/* User */}
-      <div className="flex items-center gap-3 p-5">
-        <img
-          src={post.user?.profileImage || "https://i.pravatar.cc/100?img=11"}
-          alt={post.user?.username || "User"}
-          className="h-11 w-11 rounded-full object-cover"
-        />
+  const authorAvatar =
+    post.user?.id === user?.id && user?.profileImage
+      ? user.profileImage
+      : post.user?.profileImage || "https://i.pravatar.cc/100?img=11";
 
-        <div>
-          <p className="font-semibold">
+  return (
+    <article className="overflow-hidden rounded-[28px] bg-white border border-gray-100 shadow-xs hover:shadow-sm transition-shadow">
+      {/* Author Header */}
+      <div className="flex items-center gap-3 p-4 sm:p-5">
+        <img
+          src={authorAvatar}
+          alt={post.user?.username || "User"}
+          className="h-10 w-10 rounded-full object-cover border border-gray-100 shadow-2xs"
+        />
+        <div className="min-w-0">
+          <p className="text-xs font-bold text-gray-900 truncate">
             {post.user?.firstName} {post.user?.lastName}
           </p>
-
-          <p className="text-sm text-gray-400">@{post.user?.username}</p>
+          <p className="text-[11px] text-gray-400 truncate">@{post.user?.username}</p>
         </div>
       </div>
 
-      {/* Images */}
+      {/* Post Images */}
       {post.images?.length > 0 && (
-        <div className="space-y-1">
+        <div className="space-y-1 bg-gray-50">
           {post.images.map((image) => (
             <img
               key={image.id}
               src={image.imageUrl}
               alt="Post"
-              className="max-h-150 w-full object-cover"
+              className="max-h-[500px] w-full object-cover"
             />
           ))}
         </div>
       )}
 
-      {/* Content */}
-      <div className="p-5">
-        {post.caption && <p className="text-gray-700">{post.caption}</p>}
+      {/* Post Content */}
+      <div className="p-4 sm:p-5">
+        {post.caption && (
+          <p className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-line">
+            {post.caption}
+          </p>
+        )}
 
         {post.location && (
-          <div className="mt-3 flex items-center gap-1 text-sm text-gray-400">
-            <MapPin size={15} />
+          <div className="mt-2.5 flex items-center gap-1.5 text-xs text-gray-500">
+            <MapPin size={13} className="text-[#385526] shrink-0" />
             <span>{post.location}</span>
           </div>
         )}
 
-        {/* Actions */}
-        <div className="mt-5 flex items-center gap-6 border-t pt-4">
+        {/* Actions Bar */}
+        <div className="mt-4 flex items-center gap-5 border-t border-gray-100 pt-3.5">
+          {/* Like */}
           <button
+            type="button"
             onClick={handleLike}
-            className={`flex items-center gap-2 ${
-              liked ? "text-red-500" : "text-gray-500 hover:text-red-500"
+            className={`flex items-center gap-1.5 text-xs font-semibold transition cursor-pointer ${
+              liked
+                ? "text-red-500"
+                : "text-gray-500 hover:text-red-500"
             }`}
           >
-            <Heart size={21} fill={liked ? "currentColor" : "none"} />
-
+            <Heart size={18} fill={liked ? "currentColor" : "none"} />
             <span>{likeCount}</span>
           </button>
 
+          {/* Comment Toggle */}
           <button
+            type="button"
             onClick={() => setShowComment((prev) => !prev)}
-            className="flex items-center gap-2 text-gray-500 hover:text-[#0F4C81]"
+            className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#385526] transition cursor-pointer"
           >
-            <MessageCircle size={21} />
-
+            <MessageCircle size={18} />
             <span>{post._count?.comments || 0}</span>
           </button>
         </div>
 
-        {/* Comment input */}
+        {/* Comment Form */}
         {showComment && (
-          <form onSubmit={handleComment} className="mt-4 flex gap-2">
+          <form onSubmit={handleComment} className="mt-3.5 flex gap-2 pt-3 border-t border-gray-50">
             <input
               type="text"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm outline-none focus:border-[#0F4C81]"
+              className="flex-1 rounded-full border border-gray-200 bg-[#f8faf7] px-4 py-2 text-xs text-gray-900 placeholder:text-gray-400 outline-none focus:border-[#385526] focus:ring-1 focus:ring-[#385526] transition"
             />
-
             <button
               type="submit"
               disabled={commentLoading}
-              className="rounded-full bg-[#0F4C81] px-5 py-2 text-sm text-white disabled:opacity-50"
+              className="rounded-full bg-[#385526] hover:bg-[#2d451e] px-4 py-2 text-xs font-semibold text-white shadow-2xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1"
             >
-              {commentLoading ? "..." : "Comment"}
+              {commentLoading ? (
+                "..."
+              ) : (
+                <>
+                  <span>Send</span>
+                  <Send size={12} />
+                </>
+              )}
             </button>
           </form>
         )}
