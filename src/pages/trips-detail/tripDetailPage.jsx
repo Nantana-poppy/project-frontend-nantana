@@ -309,7 +309,7 @@ const TripDetailPage = () => {
         </div>
 
         {/* Hero Banner Section */}
-        <div className="relative overflow-hidden rounded-4xl sm:rounded-[40px] bg-gray-900 shadow-md min-h-[380px] sm:min-h-[440px] flex items-end">
+        <div className="relative overflow-hidden rounded-4xl sm:rounded-[40px] bg-gray-900 shadow-md min-h-95 sm:min-h-110 flex items-end">
           <img
             src={
               trip.image ||
