@@ -1,7 +1,10 @@
 import useUserStore from "@/stores/userStore";
 import { Users, UserCheck } from "lucide-react";
 
+import { useNavigate } from "react-router";
+
 const TripMembers = ({ members = [], maxMember = 4 }) => {
+  const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
 
   const totalMax = Number(maxMember || 4);
@@ -36,24 +39,37 @@ const TripMembers = ({ members = [], maxMember = 4 }) => {
               "https://i.pravatar.cc/100";
 
             return (
-              <div key={member.id} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#f8faf7] border border-gray-100">
+              <div 
+                key={member.id} 
+                onClick={() => {
+                  if (member.user?.id) {
+                    navigate(isCurrentUser ? "/profile" : `/profile/${member.user.id}`);
+                  }
+                }}
+                className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-[#f8faf7] hover:bg-[#eef4ec] border border-gray-100 hover:border-[#385526]/20 transition-all cursor-pointer group"
+                title={`View ${member.user?.firstName}'s profile`}
+              >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <img
                     src={avatar}
                     alt={member.user?.username}
-                    className="h-8 w-8 rounded-full object-cover border border-white shadow-2xs"
+                    className="h-8 w-8 rounded-full object-cover border border-white shadow-2xs group-hover:ring-2 group-hover:ring-[#385526]/30 transition"
                   />
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-gray-800 truncate">
-                      {member.user.firstName} {member.user.lastName}
+                    <p className="text-xs font-semibold text-gray-800 group-hover:text-[#385526] transition truncate">
+                      {member.user?.firstName} {member.user?.lastName}
                     </p>
-                    <p className="text-[11px] text-gray-400 truncate">@{member.user.username}</p>
+                    <p className="text-[11px] text-gray-400 truncate">@{member.user?.username}</p>
                   </div>
                 </div>
-                {isCurrentUser && (
+                {isCurrentUser ? (
                   <span className="text-[10px] font-semibold bg-emerald-100 text-[#2d451e] px-2 py-0.5 rounded-full flex items-center gap-1">
                     <UserCheck size={11} />
                     <span>You</span>
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-medium text-gray-400 group-hover:text-[#385526] transition">
+                    View &rarr;
                   </span>
                 )}
               </div>

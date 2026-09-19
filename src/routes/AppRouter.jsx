@@ -32,6 +32,10 @@ const router = createBrowserRouter([
     path: "/profile",
     Component: ProfilePage,
   },
+  {
+    path: "/profile/:userId",
+    Component: ProfilePage,
+  },
 
   {
     path: "/",

@@ -187,14 +187,24 @@ export default function TripCard({
 
           {/* Host & Member Count Row */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (hostId) {
+                  const isCurrentUser = user?.id && Number(hostId) === Number(user.id);
+                  navigate(isCurrentUser ? "/profile" : `/profile/${hostId}`);
+                }
+              }}
+              className="flex items-center gap-2.5 min-w-0 hover:opacity-80 transition cursor-pointer group/host"
+              title={`View ${hostName}'s profile`}
+            >
               <img
                 src={effectiveHostAvatar}
                 alt={hostName}
-                className="h-9 w-9 rounded-full object-cover border border-gray-100 shadow-2xs"
+                className="h-9 w-9 rounded-full object-cover border border-gray-100 shadow-2xs group-hover/host:ring-2 group-hover/host:ring-[#385526]/30 transition"
               />
               <div className="min-w-0 leading-tight">
-                <p className="text-xs font-semibold text-gray-900 truncate">
+                <p className="text-xs font-semibold text-gray-900 group-hover/host:text-[#385526] transition truncate">
                   {hostName}
                 </p>
                 <p className="text-[11px] text-gray-400">Host</p>

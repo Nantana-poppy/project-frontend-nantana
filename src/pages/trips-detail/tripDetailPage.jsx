@@ -444,18 +444,27 @@ const TripDetailPage = () => {
                 Trip Host
               </span>
 
-              <div className="flex items-center gap-3">
-                <img
-                  src={effectiveHostAvatar}
-                  alt={trip.owner?.username}
-                  className="h-12 w-12 rounded-full object-cover border border-gray-100 shadow-2xs"
-                />
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {trip.owner?.firstName} {trip.owner?.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500">@{trip.owner?.username}</p>
+              <div
+                onClick={() => navigate(`/profile/${trip.owner?.id}`)}
+                className="flex items-center justify-between gap-3 p-2 -mx-2 rounded-2xl hover:bg-[#f8faf7] transition cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <img
+                    src={effectiveHostAvatar}
+                    alt={trip.owner?.username}
+                    className="h-12 w-12 rounded-full object-cover border border-gray-100 shadow-2xs group-hover:scale-105 transition-transform"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900 group-hover:text-[#385526] transition-colors truncate">
+                      {trip.owner?.firstName} {trip.owner?.lastName}
+                    </p>
+                    <p className="text-xs text-gray-500">@{trip.owner?.username}</p>
+                  </div>
                 </div>
+
+                <span className="text-[11px] font-semibold text-[#385526] bg-[#f2f6f0] px-2.5 py-1 rounded-full border border-[#385526]/10 shrink-0">
+                  View Profile
+                </span>
               </div>
 
               {/* Members List with ratio and remaining spots */}

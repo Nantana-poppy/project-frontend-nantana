@@ -113,7 +113,18 @@ export default function CommunityPage() {
             {!loading && posts.length > 0 && (
               <div className="space-y-6">
                 {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onDelete={(deletedId) =>
+                      setPosts((prev) => prev.filter((p) => p.id !== deletedId))
+                    }
+                    onUpdate={(updatedPost) =>
+                      setPosts((prev) =>
+                        prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+                      )
+                    }
+                  />
                 ))}
               </div>
             )}
