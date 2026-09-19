@@ -77,40 +77,12 @@ const TripDetailPage = () => {
     (m) => Number(m.user?.id) === Number(user?.id) || Number(m.userId) === Number(user?.id)
   );
 
-  // Get Trip Detail
-  const fetchTripDetail = async () => {
-    try {
-      setLoading(true);
-      const response = await mainApi.get(`/trips/${tripId}`);
-      setTrip(response.data.data);
-    } catch (error) {
-      console.error("Get trip detail error:", error.response?.data || error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Get Trip Members
   const fetchTripMembers = async () => {
     try {
       await fetchMembers(tripId);
     } catch (error) {
       console.error("Get trip members error:", error.response?.data || error);
-    }
-  };
-
-  // Get Join Requests (Owner only)
-  const fetchJoinRequests = async () => {
-    if (!tripId || !isOwner) return;
-
-    try {
-      setRequestsLoading(true);
-      const response = await mainApi.get(`/trips/${tripId}/requests`);
-      setRequests(response.data.data || []);
-    } catch (error) {
-      console.error("Get join requests error:", error.response?.data || error);
-    } finally {
-      setRequestsLoading(false);
     }
   };
 
@@ -208,13 +180,61 @@ const TripDetailPage = () => {
   // Initial Load
   useEffect(() => {
     if (!tripId) return;
-    fetchTripDetail();
-    fetchMembers(tripId);
-  }, [tripId]);
+
+    let isMounted = true;
+
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [tripResp] = await Promise.all([
+          mainApi.get(`/trips/${tripId}`),
+          fetchMembers(tripId),
+        ]);
+        if (isMounted) {
+          setTrip(tripResp.data.data);
+        }
+      } catch (error) {
+        console.error("Load trip data error:", error.response?.data || error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tripId, fetchMembers]);
 
   useEffect(() => {
     if (!tripId || !isOwner) return;
-    fetchJoinRequests();
+
+    let isMounted = true;
+
+    const loadRequests = async () => {
+      try {
+        setRequestsLoading(true);
+        const response = await mainApi.get(`/trips/${tripId}/requests`);
+        if (isMounted) {
+          setRequests(response.data.data || []);
+        }
+      } catch (error) {
+        console.error("Get join requests error:", error.response?.data || error);
+      } finally {
+        if (isMounted) {
+          setRequestsLoading(false);
+        }
+      }
+    };
+
+    loadRequests();
+
+    return () => {
+      isMounted = false;
+    };
   }, [tripId, isOwner]);
 
   // Loading
@@ -289,7 +309,7 @@ const TripDetailPage = () => {
         </div>
 
         {/* Hero Banner Section */}
-        <div className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-gray-900 shadow-md min-h-[380px] sm:min-h-[440px] flex items-end">
+        <div className="relative overflow-hidden rounded-4xl sm:rounded-[40px] bg-gray-900 shadow-md min-h-[380px] sm:min-h-[440px] flex items-end">
           <img
             src={
               trip.image ||
@@ -298,7 +318,7 @@ const TripDetailPage = () => {
             alt={trip.title}
             className="absolute inset-0 h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-black/10" />
 
           {/* Banner Details */}
           <div className="relative z-10 p-6 sm:p-10 text-white w-full">

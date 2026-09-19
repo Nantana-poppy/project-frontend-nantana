@@ -18,7 +18,7 @@ export default function SaveTripPage() {
     if (user?.id) {
       fetchSavedTrips(user.id);
     }
-  }, [user?.id]);
+  }, [user?.id, fetchSavedTrips]);
 
   return (
     <div className="min-h-screen bg-[#f8faf7] flex flex-col">

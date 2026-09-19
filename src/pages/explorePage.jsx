@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X, Compass, Filter } from "lucide-react";
+import { Search, SlidersHorizontal, X, Compass} from "lucide-react";
 
 import { mainApi } from "@/api/mainApi";
 import { MenuBar } from "@/components/MenuBar";
@@ -48,7 +48,7 @@ export default function ExplorePage() {
     if (user?.id) {
       fetchSavedTrips(user.id);
     }
-  }, [user?.id]);
+  }, [user?.id, fetchSavedTrips]);
 
   // GET CATEGORIES
   useEffect(() => {

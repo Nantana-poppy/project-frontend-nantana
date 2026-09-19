@@ -1,7 +1,7 @@
 import { mainApi } from "@/api/mainApi";
 import { create } from "zustand";
 
-export const useCategoryStore = create((set, get) => ({
+export const useCategoryStore = create((set) => ({
   category: [],
   fetchCategory: async () => {
     //Call api

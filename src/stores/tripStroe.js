@@ -106,20 +106,13 @@ const useTripStore = create((set, get) => ({
     const numericTripId = Number(tripId);
 
     set((state) => {
-      let nextSavedTripIds = [];
-      let nextSavedTrips = [];
+      const nextSavedTripIds = isSaved
+        ? [...new Set([...state.savedTripIds, numericTripId])]
+        : state.savedTripIds.filter((id) => id !== numericTripId);
 
-      if (isSaved) {
-        nextSavedTripIds = [...new Set([...state.savedTripIds, numericTripId])];
-        if (data) {
-          nextSavedTrips = [data, ...state.savedTrips.filter((item) => Number(item.trip.id) !== numericTripId)];
-        } else {
-          nextSavedTrips = state.savedTrips;
-        }
-      } else {
-        nextSavedTripIds = state.savedTripIds.filter((id) => id !== numericTripId);
-        nextSavedTrips = state.savedTrips.filter((item) => Number(item.trip.id) !== numericTripId);
-      }
+      const nextSavedTrips = isSaved
+        ? (data ? [data, ...state.savedTrips.filter((item) => Number(item.trip?.id || item.tripId) !== numericTripId)] : state.savedTrips)
+        : state.savedTrips.filter((item) => Number(item.trip?.id || item.tripId) !== numericTripId);
 
       return {
         savedTripIds: nextSavedTripIds,

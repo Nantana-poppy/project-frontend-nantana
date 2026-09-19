@@ -1,25 +1,30 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, Image as ImageIcon, MapPin, Sparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { mainApi } from "@/api/mainApi";
 import uploadCloud from "@/utils/uploadCloud";
 
 export default function EditPostModal({ isOpen, onClose, post, onSuccess }) {
-  const [caption, setCaption] = useState("");
-  const [location, setLocation] = useState("");
-  const [images, setImages] = useState([]);
+  if (!isOpen || !post) return null;
+
+  return (
+    <EditPostModalContent
+      key={post.id}
+      onClose={onClose}
+      post={post}
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+function EditPostModalContent({ onClose, post, onSuccess }) {
+  const [caption, setCaption] = useState(post.caption || "");
+  const [location, setLocation] = useState(post.location || "");
+  const [images, setImages] = useState(
+    post.images?.map((img) => (typeof img === "string" ? img : img.imageUrl)) || []
+  );
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    if (post && isOpen) {
-      setCaption(post.caption || "");
-      setLocation(post.location || "");
-      setImages(post.images?.map((img) => (typeof img === "string" ? img : img.imageUrl)) || []);
-    }
-  }, [post, isOpen]);
-
-  if (!isOpen || !post) return null;
 
   const handleImageChange = async (e) => {
     const files = Array.from(e.target.files || []);

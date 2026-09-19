@@ -1,6 +1,6 @@
 import { MenuBar } from "@/components/MenuBar";
 import { useState } from "react";
-import { Image as ImageIcon, MapPin, X, ArrowLeft, Heart, MessageCircle, Send, Sparkles } from "lucide-react";
+import { Image as ImageIcon, MapPin, X, ArrowLeft, Heart, MessageCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { mainApi } from "@/api/mainApi";

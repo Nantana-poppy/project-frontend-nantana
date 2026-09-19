@@ -27,18 +27,26 @@ export default function ProfilePage() {
   const [followingCount, setFollowingCount] = useState(0);
   const [followLoading, setFollowLoading] = useState(false);
 
-  const isOwnProfile = !userId || (currentUser?.id && Number(userId) === Number(currentUser.id));
+  const currentUserId = currentUser?.id;
+  const isOwnProfile = !userId || (currentUserId && Number(userId) === Number(currentUserId));
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfileData = async () => {
+      if (!currentUserId && !userId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
 
         if (isOwnProfile) {
           // Fetch own profile
           const meResp = await mainApi.get("/auth/me");
-          const userData = meResp.data?.user || currentUser;
-          if (userData) {
+          const userData = meResp.data?.user;
+          if (userData && isMounted) {
             updateUser(userData);
             setProfile(userData);
             setFollowersCount(userData._count?.followers ?? 0);
@@ -47,56 +55,72 @@ export default function ProfilePage() {
 
           // Fetch own trips
           const tripsResp = await mainApi.get("/users/me/trips");
-          setTrips(tripsResp.data.data || []);
+          if (isMounted) {
+            setTrips(tripsResp.data.data || []);
+          }
 
           // Fetch own posts
           try {
             const postsResp = await mainApi.get("/users/me/posts");
-            setPosts(postsResp.data.data || []);
-          } catch (postErr) {
-            console.error("Get own posts error:", postErr);
-            setPosts([]);
+            if (isMounted) {
+              setPosts(postsResp.data.data || []);
+            }
+          } catch {
+            if (isMounted) {
+              setPosts([]);
+            }
           }
         } else {
           // Fetch target user's profile
           const userResp = await mainApi.get(`/users/${userId}`);
           const targetUser = userResp.data.data;
-          setProfile(targetUser);
-          setIsFollowing(!!targetUser.isFollowing);
-          setFollowersCount(targetUser._count?.followers ?? 0);
-          setFollowingCount(targetUser._count?.following ?? 0);
+          if (isMounted) {
+            setProfile(targetUser);
+            setIsFollowing(!!targetUser.isFollowing);
+            setFollowersCount(targetUser._count?.followers ?? 0);
+            setFollowingCount(targetUser._count?.following ?? 0);
+          }
 
           // Fetch target user's trips
           try {
             const tripsResp = await mainApi.get(`/users/${userId}/trips`);
-            setTrips(tripsResp.data.data || []);
-          } catch (err) {
-            setTrips([]);
+            if (isMounted) {
+              setTrips(tripsResp.data.data || []);
+            }
+          } catch {
+            if (isMounted) {
+              setTrips([]);
+            }
           }
 
           // Fetch target user's posts
           try {
             const postsResp = await mainApi.get(`/users/${userId}/posts`);
-            setPosts(postsResp.data.data || []);
-          } catch (postErr) {
-            console.error("Get target user posts error:", postErr);
-            setPosts([]);
+            if (isMounted) {
+              setPosts(postsResp.data.data || []);
+            }
+          } catch {
+            if (isMounted) {
+              setPosts([]);
+            }
           }
         }
       } catch (error) {
         console.error("Get profile error:", error.response?.data || error);
         toast.error(error.response?.data?.message || "Failed to load profile");
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (currentUser || userId) {
-      fetchProfileData();
-    } else {
-      setLoading(false);
-    }
-  }, [userId, isOwnProfile, currentUser?.id]);
+    fetchProfileData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, currentUserId, isOwnProfile, updateUser]);
 
   // Handle Follow / Unfollow Toggle
   const handleFollowToggle = async () => {
@@ -167,7 +191,7 @@ export default function ProfilePage() {
 
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 flex flex-col gap-6">
         {/* Profile Header Card */}
-        <div className="rounded-[32px] sm:rounded-[40px] bg-white p-6 sm:p-10 border border-gray-100 shadow-xs">
+        <div className="rounded-4xl sm:rounded-[40px] bg-white p-6 sm:p-10 border border-gray-100 shadow-xs">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 text-center sm:text-left">
             {/* Avatar */}
             <div className="relative shrink-0">

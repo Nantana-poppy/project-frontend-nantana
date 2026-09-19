@@ -1,5 +1,5 @@
 import { MenuBar } from "@/components/MenuBar";
-import { Bell, Check, X, Users, Compass } from "lucide-react";
+import { Bell, Compass } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 

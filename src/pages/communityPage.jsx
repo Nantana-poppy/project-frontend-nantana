@@ -133,7 +133,7 @@ export default function CommunityPage() {
           {/* Sidebar (1 col) */}
           <div className="space-y-6">
             {/* Community Welcome Card */}
-            <div className="rounded-[28px] bg-gradient-to-br from-[#233d1b] to-[#162911] text-white p-6 shadow-sm">
+            <div className="rounded-[28px] bg-liear-to-br from-[#233d1b] to-[#162911] text-white p-6 shadow-sm">
               <div className="flex items-center gap-2 text-emerald-200 text-xs font-semibold mb-2">
                 <Sparkles size={16} />
                 <span>Traveler Community</span>

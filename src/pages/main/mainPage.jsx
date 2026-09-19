@@ -23,22 +23,33 @@ export default function MainPage() {
   const category = useCategoryStore((state) => state.category);
   const categoryOptions = [{ id: "all", name: "All" }, ...category];
 
-  const fetchTrips = async () => {
-    try {
-      const resp = await mainApi.get("/trips");
-      setTrips(resp.data.data || []);
-    } catch (err) {
-      console.error("Failed to fetch trips:", err);
-    }
-  };
-
   useEffect(() => {
-    fetchCategories();
-    fetchTrips();
+    let isMounted = true;
+
+    const loadPageData = async () => {
+      try {
+        const [, tripsResp] = await Promise.all([
+          fetchCategories(),
+          mainApi.get("/trips"),
+        ]);
+        if (isMounted) {
+          setTrips(tripsResp.data.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load page data:", err);
+      }
+    };
+
+    loadPageData();
+
     if (user?.id) {
       fetchSavedTrips(user.id);
     }
-  }, [user?.id]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, fetchCategories, fetchSavedTrips]);
 
   // Filter by category and search query
   const filteredTrips = trips.filter((trip) => {
@@ -59,7 +70,7 @@ export default function MainPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 flex flex-col gap-8 sm:gap-10">
         {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-[32px] sm:rounded-[40px] bg-[#1e3416] text-white shadow-lg">
+        <div className="relative overflow-hidden rounded-4xl sm:rounded-[40px] bg-[#1e3416] text-white shadow-lg">
           {/* Background image overlay with soft gradient */}
           <div
             className="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-luminosity scale-105"
@@ -67,7 +78,7 @@ export default function MainPage() {
               backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1600&auto=format&fit=crop')`,
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#1b3014]/95 via-[#233d1b]/80 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-r from-[#1b3014]/95 via-[#233d1b]/80 to-transparent" />
 
           {/* Hero Content */}
           <div className="relative z-10 px-8 py-12 sm:px-14 sm:py-16 max-w-2xl flex flex-col items-start gap-4">

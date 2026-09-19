@@ -214,7 +214,7 @@ export function LogInContent() {
 
       {/* Right side: Plant Card Image */}
       <div className="hidden lg:flex lg:w-1/2 p-4 sm:p-6 lg:p-8 items-stretch">
-        <div className="relative w-full h-full min-h-[600px] overflow-hidden rounded-[40px] bg-[#f2f5f1] shadow-xs">
+        <div className="relative w-full h-full min-h-150 overflow-hidden rounded-[40px] bg-[#f2f5f1] shadow-xs">
           <img
             src="https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=1400&auto=format&fit=crop"
             onError={(e) => {

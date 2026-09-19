@@ -7,7 +7,6 @@ import {
   Users,
   Plus,
   Minus,
-  FileText,
   CircleDollarSign,
   MapPin,
   Sparkles,

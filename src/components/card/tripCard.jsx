@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+
 import { Bookmark, MapPin, Calendar, Users, ArrowRight } from "lucide-react";
 import { mainApi } from "@/api/mainApi";
 import { useNavigate } from "react-router";
 import useUserStore from "@/stores/userStore";
 import useTripStore from "@/stores/tripStroe";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 export default function TripCard({
   tripId,
@@ -109,7 +110,7 @@ export default function TripCard({
   return (
     <div
       onClick={() => navigate(`/trip-detail/${tripId}`)}
-      className="group relative flex flex-col rounded-[24px] bg-white border border-gray-100 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer h-full"
+      className="group relative flex flex-col rounded-3xl bg-white border border-gray-100 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer h-full"
     >
       {/* Image section */}
       <div className="relative h-56 w-full overflow-hidden bg-gray-100">
@@ -122,7 +123,7 @@ export default function TripCard({
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
         />
         {/* Subtle Dark Gradient at Bottom of Image */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/10" />
 
         {/* Badges top left */}
         <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5">
